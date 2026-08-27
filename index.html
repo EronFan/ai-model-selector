@@ -17,6 +17,9 @@
     V3 (2026-08-27): 选择器新增「项目主要语言」（中文/英文/混合）因子（中文 +15% 权重）；
           推荐区空态/加载态压缩；默认改为浅色模式。
     V4 (2026-08-27): Hero 压缩（单行标题、留白减半），页边距加宽（容器 1120px、动态 clamp 边距）。
+    V7 (2026-08-27): 删除 Hero 标题/副文案与两个 CTA 按钮（保留数据条）；
+          移除模型卡与对比卡的能力雷达图及 radarSVG；浅色模式切换为「赤陶橙」色板
+          （底 #FBF8F4 / 主色 #C2551F / 文字级主色 #A04312 / 淡底 #F9E9DC）。
     V5 (2026-08-27): 白天模式切换为「青瓷绿」色板（底 #F4F7F6 / 卡片 #FFFFFF /
           主色 #0F7B6C / 淡底 #E2F2EE / 文字 #17211D）；新增 --accent-fill token，
           雷达图填充与 hero 光晕改走主题变量；深色模式维持 Linear 靓蓝不变。
@@ -28,7 +31,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI 编程模型选型指南 · 哪个 AI 最适合你的项目</title>
+  <title>AI 编程模型选型指南 · 项目级模型推荐决策引擎</title>
   <meta name="description" content="不看谁最强，只看谁最适合。项目类型 → 推荐模型 → 不推荐模型 → 原因 → 关键能力，10 秒选出适合你项目的 AI Coding 模型。" />
   <style>
     /* ═══ tokens ═══ 依据 linear-app/DESIGN.md（暗色原生 + 浅色主题） */
@@ -72,21 +75,21 @@
       font-feature-settings: "cv01", "ss03";
     }
     [data-theme="light"] {
-      --bg: #f4f7f6;
+      --bg: #fbf8f4;
       --panel: #ffffff;
-      --surface: #ecf2ef;
-      --surface-2: #dce7e2;
-      --fg: #17211d;
-      --fg-2: #3a453f;
-      --fg-3: #65716c;
-      --fg-4: #8b968f;
-      --accent: #0f7b6c;
-      --accent-bright: #0c655a;
-      --accent-hover: #128574;
-      --accent-soft: #e2f2ee;
-      --accent-fill: rgba(15, 123, 108, 0.16);
-      --border: rgba(23, 33, 29, 0.13);
-      --border-subtle: rgba(23, 33, 29, 0.07);
+      --surface: #f4ebe2;
+      --surface-2: #e9dccd;
+      --fg: #251e19;
+      --fg-2: #4c4238;
+      --fg-3: #75695f;
+      --fg-4: #9a8c80;
+      --accent: #c2551f;
+      --accent-bright: #a04312;
+      --accent-hover: #d06a33;
+      --accent-soft: #f9e9dc;
+      --accent-fill: rgba(194, 85, 31, 0.14);
+      --border: rgba(37, 30, 25, 0.13);
+      --border-subtle: rgba(37, 30, 25, 0.07);
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -144,7 +147,7 @@
     .icon-btn svg { width: 17px; height: 17px; }
 
     /* ═══ hero ═══ */
-    .hero { padding-block: clamp(44px, 6vw, 80px) clamp(32px, 4.5vw, 56px); position: relative; overflow: hidden; }
+    .hero { padding-block: clamp(36px, 5vw, 56px) clamp(28px, 4vw, 44px); position: relative; overflow: hidden; }
     .hero::before {
       content: ""; position: absolute; inset: 0; pointer-events: none;
       background:
@@ -165,11 +168,6 @@
     .hero .lead { font-size: 17px; line-height: 1.65; color: var(--fg-3); max-width: 58ch; margin-bottom: var(--gap-xl); }
     .hero-cta { display: flex; gap: var(--gap-sm); flex-wrap: wrap; }
     .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 10px 18px; border-radius: 8px; border: 1px solid transparent;
-      font-size: 14.5px; font-weight: 510; letter-spacing: -0.005em;
-      transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
-    }
     .btn:active { transform: translateY(1px); }
     .btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
     .btn-primary { background: var(--accent); color: var(--on-accent); }
@@ -180,7 +178,7 @@
     [data-theme="light"] .btn-secondary:hover { background: var(--surface-2); }
     .btn-ghost { background: transparent; color: var(--fg-2); border-color: transparent; }
     .btn-ghost:hover { color: var(--fg); }
-    .hero-strip { display: flex; gap: var(--gap-md); flex-wrap: wrap; margin-top: var(--gap-lg); }
+    .hero-strip { display: flex; gap: var(--gap-md); flex-wrap: wrap; }
     .strip-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-3); }
     .strip-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }
     .strip-item .dot.amber { background: var(--warn); }
@@ -302,8 +300,6 @@
     .mc-tier.s { color: var(--emerald); border-color: color-mix(in oklch, var(--emerald) 40%, transparent); }
     .mc-positioning { font-size: 13.5px; color: var(--fg-2); line-height: 1.55; }
     .mc-kw { display: flex; gap: 6px; flex-wrap: wrap; }
-    .mc-radar { display: grid; place-items: center; padding-block: 4px; }
-    .mc-radar svg { width: 150px; height: 150px; }
     .mc-lists { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-md); border-top: 1px solid var(--border-subtle); padding-top: 12px; }
     .mc-list h4 { font-size: 11px; font-weight: 590; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fg-4); margin-bottom: 7px; }
     .mc-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
@@ -518,15 +514,9 @@
 
   <main id="content">
     <!-- ═══ Hero ═══ -->
-    <section class="section hero" data-od-id="hero" style="padding-bottom: clamp(32px, 4.5vw, 56px);">
+    <section class="section hero" data-od-id="hero" style="padding-bottom: clamp(28px, 4vw, 44px);">
       <div class="container hero-inner">
         <p class="eyebrow">AI Coding Model Selector · 2026-08</p>
-        <h1>哪个 AI 最适合你的项目？<span class="grad">只看谁最合适。</span></h1>
-        <p class="lead">输入项目类型、规模与任务，10 秒内得到三档推荐 + 明确的"不优先"清单，每个结论都附原因。</p>
-        <div class="hero-cta">
-          <a class="btn btn-primary" href="#selector">开始选择模型</a>
-          <a class="btn btn-secondary" href="#models">查看全部模型</a>
-        </div>
         <div class="hero-strip">
           <span class="strip-item"><span class="dot" aria-hidden="true"></span>11 个主流模型纳入比较</span>
           <span class="strip-item"><span class="dot amber" aria-hidden="true"></span>26 类项目 · 17 类任务</span>
@@ -1102,27 +1092,6 @@
   /* ═══════════════ 工具函数 ═══════════════ */
   function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
-  function radarSVG(m, size) {
-    const n = CAP_KEYS.length, cx = 55, cy = 55, R = 42;
-    const angle = (i) => (Math.PI * 2 * i / n) - Math.PI / 2;
-    const pt = (i, r) => [cx + r * Math.cos(angle(i)), cy + r * Math.sin(angle(i))];
-    let grid = "";
-    for (let g = 1; g <= 4; g++) {
-      const r = R * g / 4;
-      grid += `<polygon points="${CAP_KEYS.map((_, i) => pt(i, r).join(",")).join(" ")}" fill="none" stroke="var(--border)" stroke-width="1"/>`;
-    }
-    const poly = CAP_KEYS.map((k, i) => pt(i, R * (m.caps[k[0]] / 5)).join(",")).join(" ");
-    const dots = CAP_KEYS.map((k, i) => {
-      const [x, y] = pt(i, R * (m.caps[k[0]] / 5));
-      return `<circle cx="${x}" cy="${y}" r="1.8" fill="var(--accent-bright)"/>`;
-    }).join("");
-    const labels = CAP_KEYS.map((k, i) => {
-      const [x, y] = pt(i, R + 13);
-      return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="5.6" fill="var(--fg-3)" font-family="ui-monospace,Menlo,monospace">${k[1].replace("/", "")}</text>`;
-    }).join("");
-    return `<svg viewBox="0 0 110 110" role="img" aria-label="${esc(m.name)}能力雷达图">${grid}<polygon points="${poly}" fill="var(--accent-fill)" stroke="var(--accent-bright)" stroke-width="1.3"/>${dots}${labels}</svg>`;
-  }
-
   function barRow(label, val, max, cls, fmt) {
     const pct = max > 0 ? Math.round(val / max * 100) : 0;
     return `<div class="c-row"><span>${label}</span><div class="bar ${cls}"><span style="width:${pct}%"></span></div><span class="n">${fmt ? fmt(val) : val}</span></div>`;
@@ -1144,7 +1113,6 @@
         </div>
         <p class="mc-positioning">${esc(m.positioning)}</p>
         <div class="mc-kw">${m.tags.map(t => `<span class="tag accent">${esc(t)}</span>`).join("")}</div>
-        <div class="mc-radar">${radarSVG(m)}</div>
         <div class="mc-lists">
           <div class="mc-list good"><h4>最适合</h4><ul>${best}</ul></div>
           <div class="mc-list bad"><h4>不优先</h4><ul>${avoid}</ul></div>
@@ -1175,7 +1143,6 @@
           </div>
           <p class="mc-positioning">${esc(m.positioning)}</p>
           <div class="mc-kw">${m.tags.map(t => `<span class="tag accent">${esc(t)}</span>`).join("")}</div>
-          <div class="mc-radar">${radarSVG(m)}</div>
         </label>`;
     }).join("");
   }
