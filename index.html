@@ -81,23 +81,23 @@
       font-feature-settings: "cv01", "ss03";
     }
     [data-theme="light"] {
-      --bg: #fbf8f4;
+      --bg: #f7f6f3;
       --panel: #ffffff;
-      --surface: #f4ebe2;
-      --surface-2: #e9dccd;
-      --fg: #251e19;
-      --fg-2: #4c4238;
-      --fg-3: #75695f;
-      --fg-4: #9a8c80;
-      --accent: #c2551f;
-      --accent-bright: #a04312;
-      --accent-hover: #d06a33;
-      --accent-soft: #f9e9dc;
-      --accent-fill: rgba(194, 85, 31, 0.14);
-      --border: rgba(37, 30, 25, 0.18);
-      --border-subtle: rgba(37, 30, 25, 0.09);
-      --card-shadow: 0 1px 2px rgba(37, 30, 25, 0.05), 0 4px 16px rgba(37, 30, 25, 0.06);
-      --card-hover-shadow: 0 2px 4px rgba(37, 30, 25, 0.07), 0 10px 28px rgba(37, 30, 25, 0.10);
+      --surface: #efeeea;
+      --surface-2: #e4e3de;
+      --fg: #1a1a1c;
+      --fg-2: #454549;
+      --fg-3: #76767a;
+      --fg-4: #9b9b9f;
+      --accent: #222226;
+      --accent-bright: #1d1d1f;
+      --accent-hover: #3f3f46;
+      --accent-soft: #ececea;
+      --accent-fill: rgba(34, 34, 38, 0.16);
+      --border: rgba(26, 26, 28, 0.15);
+      --border-subtle: rgba(26, 26, 28, 0.08);
+      --card-shadow: 0 1px 2px rgba(26, 26, 28, 0.05), 0 4px 16px rgba(26, 26, 28, 0.06);
+      --card-hover-shadow: 0 2px 4px rgba(26, 26, 28, 0.07), 0 10px 28px rgba(26, 26, 28, 0.10);
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -188,7 +188,7 @@
     .hero-strip { display: flex; gap: var(--gap-md); flex-wrap: wrap; }
     .strip-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-3); }
     .strip-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }
-    .strip-item .dot.amber { background: var(--warn); }
+    .strip-item .dot.amber { background: var(--fg-4); }
 
     /* ═══ section headers ═══ */
     .sec-head { margin-bottom: var(--gap-xl); max-width: 640px; }
@@ -405,6 +405,8 @@
     .lv.mid { background: color-mix(in oklch, var(--accent) 18%, transparent); color: var(--accent-bright); border: 1px solid color-mix(in oklch, var(--accent) 35%, transparent); }
     .lv.lo { background: rgba(255,255,255,0.03); color: var(--fg-4); border: 1px solid var(--border); }
     [data-theme="light"] .lv.lo { background: rgba(23,33,29,0.04); }
+    [data-theme="light"] .lv.hi { background: var(--accent); color: #fff; border-color: var(--accent); }
+    [data-theme="light"] .lv.mid { background: var(--accent-soft); color: var(--accent-bright); border-color: rgba(26,26,28,0.14); }
     .heat-legend { display: flex; gap: var(--gap-md); flex-wrap: wrap; margin-top: var(--gap-md); font-size: 12.5px; color: var(--fg-3); }
     .heat-legend .item { display: flex; align-items: center; gap: 7px; }
     .heat-note { margin-top: 12px; font-size: 12px; color: var(--fg-4); }
@@ -704,7 +706,7 @@
       </div>
 
       <!-- 平台适配热力图 -->
-      <div style="margin-top: var(--gap-2xl);">
+      <div class="container" style="margin-top: var(--gap-2xl);">
         <div class="sec-head">
           <span class="sec-num">06.5 · Platform Fit</span>
           <h2>平台适配热力图</h2>
