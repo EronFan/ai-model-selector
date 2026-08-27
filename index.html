@@ -1,0 +1,1515 @@
+<!doctype html>
+<!--
+  AI Coding Model Selector · AI 编程模型项目选型指南
+  数据更新时间：2026-08-27
+
+  Discovery:
+    deliverable: Web 工具站（单文件自包含 HTML，交互原型）
+    audience: 开发者 / 技术决策者 / 独立开发者
+    direction: dense / dark-first（Linear 调性）+ 浅色模式
+    sections: hero / selector / model-map / tasks / reverse / compare / heatmap / cost / footer
+    accent: indigo #5e6ad2 (per linear-app/DESIGN.md)
+    craft: typography, color, anti-ai-slop, accessibility-baseline, form-validation,
+           laws-of-ux, animation-discipline, state-coverage, typography-hierarchy
+    V2 (2026-08-27): 新增 GLM-5.3 Flash（Z.ai / 智谱，2026-08-26 发布），
+          全站接入：模型卡 / 详情 / 推荐器 / 任务表 / 热力图 / 对比 / 成本；
+          新增项目类型：Browser/Computer Use、截图→UI 还原；新增任务：截图还原、Browser 自动化。
+
+  font-stack: Inter（依据 linear-app/DESIGN.md 明示，先于 craft 黑名单）
+  项目适配度是综合判断，不是官方排名；benchmark 来自 PRD 标注的官方/第三方来源，不同 harness 不可严格横向比较。
+-->
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 编程模型选型指南 · 哪个 AI 最适合你的项目</title>
+  <meta name="description" content="不看谁最强，只看谁最适合。项目类型 → 推荐模型 → 不推荐模型 → 原因 → 关键能力，10 秒选出适合你项目的 AI Coding 模型。" />
+  <style>
+    /* ═══ tokens ═══ 依据 linear-app/DESIGN.md（暗色原生 + 浅色主题） */
+    :root {
+      --bg: #08090a;
+      --panel: #0f1011;
+      --surface: #191a1b;
+      --surface-2: #28282c;
+      --fg: #f7f8f8;
+      --fg-2: #d0d6e0;
+      --fg-3: #8a8f98;
+      --fg-4: #62666d;
+      --accent: #5e6ad2;
+      --accent-bright: #7170ff;
+      --accent-hover: #828fff;
+      --on-accent: #ffffff;
+      --accent-soft: rgba(94, 106, 210, 0.16);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-subtle: rgba(255, 255, 255, 0.05);
+      --success: #27a644;
+      --emerald: #10b981;
+      --danger: #e5484d;
+      --warn: #f5a524;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      --font-mono: ui-monospace, 'SF Mono', 'Berkeley Mono', Menlo, monospace;
+      --fs-hero: clamp(38px, 5.2vw, 64px);
+      --fs-h2: clamp(26px, 3.2vw, 40px);
+      --fs-h3: 20px;
+      --fs-body: 15px;
+      --fs-sm: 13px;
+      --fs-xs: 11px;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --container: 1200px;
+      --gap-sm: 8px;
+      --gap-md: 16px;
+      --gap-lg: 24px;
+      --gap-xl: 40px;
+      --gap-2xl: 72px;
+      font-feature-settings: "cv01", "ss03";
+    }
+    [data-theme="light"] {
+      --bg: #f7f8f8;
+      --panel: #ffffff;
+      --surface: #f3f4f5;
+      --surface-2: #e6e6e6;
+      --fg: #1b1c1e;
+      --fg-2: #3f4348;
+      --fg-3: #6b7076;
+      --fg-4: #9aa0a8;
+      --border: rgba(20, 22, 26, 0.12);
+      --border-subtle: rgba(20, 22, 26, 0.07);
+      --accent-soft: rgba(94, 106, 210, 0.14);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-size: var(--fs-body);
+      line-height: 1.6;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+    img, svg { display: block; max-width: 100%; }
+    a { color: var(--accent-bright); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+    button { font: inherit; cursor: pointer; }
+    h1, h2, h3, h4 { text-wrap: balance; margin: 0; }
+    p { text-wrap: pretty; margin: 0; }
+
+    .container { max-width: var(--container); margin-inline: auto; padding-inline: 28px; }
+    .section { padding-block: clamp(56px, 8vw, var(--gap-2xl)); }
+    .section + .section { border-top: 1px solid var(--border-subtle); }
+
+    /* ═══ topnav ═══ */
+    .topnav {
+      position: sticky; top: 0; z-index: 50;
+      background: color-mix(in oklch, var(--bg) 86%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .topnav-inner { display: flex; align-items: center; justify-content: space-between; gap: var(--gap-md); padding-block: 13px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 590; letter-spacing: -0.01em; color: var(--fg); }
+    .logo-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; }
+    .logo-mark svg { width: 15px; height: 15px; color: var(--on-accent); }
+    .topnav nav { display: flex; gap: 4px; }
+    .topnav nav a {
+      padding: 7px 12px; border-radius: 6px; font-size: 13.5px; font-weight: 510;
+      color: var(--fg-3); transition: color 0.15s ease, background 0.15s ease;
+    }
+    .topnav nav a:hover { color: var(--fg); background: rgba(255,255,255,0.04); }
+    [data-theme="light"] .topnav nav a:hover { background: rgba(20,22,26,0.06); }
+    .nav-actions { display: flex; align-items: center; gap: var(--gap-sm); }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03); color: var(--fg-2);
+      display: grid; place-items: center; transition: background 0.15s ease, color 0.15s ease;
+    }
+    [data-theme="light"] .icon-btn { background: rgba(20,22,26,0.04); }
+    .icon-btn:hover { background: rgba(255,255,255,0.07); color: var(--fg); }
+    [data-theme="light"] .icon-btn:hover { background: rgba(20,22,26,0.08); }
+    .icon-btn svg { width: 17px; height: 17px; }
+
+    /* ═══ hero ═══ */
+    .hero { padding-block: clamp(72px, 11vw, 148px) clamp(56px, 9vw, 120px); position: relative; overflow: hidden; }
+    .hero::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(600px 300px at 18% 8%, rgba(94,106,210,0.14), transparent 65%),
+        radial-gradient(520px 260px at 85% 20%, rgba(16,185,129,0.05), transparent 60%);
+    }
+    .hero-inner { position: relative; max-width: 760px; }
+    .eyebrow {
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent-bright); margin-bottom: var(--gap-md); display: flex; align-items: center; gap: 8px;
+    }
+    .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent-bright); }
+    .hero h1 {
+      font-size: var(--fs-hero); line-height: 1.04; font-weight: 590;
+      letter-spacing: -0.03em; color: var(--fg); margin-bottom: var(--gap-lg);
+    }
+    .hero h1 .grad { color: var(--accent-bright); }
+    .hero .lead { font-size: 17px; line-height: 1.65; color: var(--fg-3); max-width: 58ch; margin-bottom: var(--gap-xl); }
+    .hero-cta { display: flex; gap: var(--gap-sm); flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border-radius: 8px; border: 1px solid transparent;
+      font-size: 14.5px; font-weight: 510; letter-spacing: -0.005em;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+    .btn-primary { background: var(--accent); color: var(--on-accent); }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: rgba(255,255,255,0.02); color: var(--fg); border-color: var(--border); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.05); }
+    [data-theme="light"] .btn-secondary { background: #fff; }
+    [data-theme="light"] .btn-secondary:hover { background: var(--surface-2); }
+    .btn-ghost { background: transparent; color: var(--fg-2); border-color: transparent; }
+    .btn-ghost:hover { color: var(--fg); }
+    .hero-strip { display: flex; gap: var(--gap-md); flex-wrap: wrap; margin-top: var(--gap-xl); }
+    .strip-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-3); }
+    .strip-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }
+    .strip-item .dot.amber { background: var(--warn); }
+
+    /* ═══ section headers ═══ */
+    .sec-head { margin-bottom: var(--gap-xl); max-width: 640px; }
+    .sec-head h2 { font-size: var(--fs-h2); font-weight: 590; letter-spacing: -0.02em; line-height: 1.12; margin-bottom: var(--gap-sm); }
+    .sec-head p { color: var(--fg-3); font-size: 15px; }
+    .sec-num { font-family: var(--font-mono); font-size: 12px; color: var(--accent-bright); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; display: block; }
+
+    /* ═══ selector ═══ */
+    .selector-shell {
+      display: grid; grid-template-columns: 420px 1fr; gap: var(--gap-xl); align-items: start;
+    }
+    @media (max-width: 960px) { .selector-shell { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: var(--gap-lg);
+    }
+    .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: var(--gap-md); }
+    .field > label { font-size: 12.5px; font-weight: 510; color: var(--fg-2); letter-spacing: 0.01em; }
+    .field .hint { font-size: 12px; color: var(--fg-4); }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      padding: 7px 13px; border-radius: 999px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02); color: var(--fg-2); font-size: 13px; font-weight: 510;
+      transition: all 0.15s ease;
+    }
+    [data-theme="light"] .chip { background: #fff; }
+    .chip:hover { border-color: var(--accent); color: var(--fg); }
+    .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .chip:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+    .seg { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,0.02); }
+    [data-theme="light"] .seg { background: #fff; }
+    .seg button {
+      flex: 1; padding: 7px 10px; border: 0; border-radius: 7px; background: transparent;
+      color: var(--fg-3); font-size: 13px; font-weight: 510; transition: all 0.15s ease;
+    }
+    .seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--fg); }
+    [data-theme="light"] .seg button[aria-pressed="true"] { background: var(--bg); }
+    .seg button:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 1px; }
+    .selector-submit { width: 100%; justify-content: center; margin-top: 4px; }
+    .selector-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--fg-4); }
+
+    /* 推荐结果 */
+    .result-empty {
+      border: 1px dashed var(--border); border-radius: var(--radius-lg);
+      padding: 18px 22px; color: var(--fg-3);
+      display: flex; align-items: center; gap: 14px;
+    }
+    .result-empty .big { font-size: 20px; font-weight: 590; color: var(--fg-4); flex-shrink: 0; }
+    .result-empty p { font-size: 13.5px; margin: 0; line-height: 1.6; }
+    .result-shell[hidden] { display: none; }
+    .result-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--gap-md); margin-bottom: var(--gap-md); flex-wrap: wrap; }
+    .result-head h3 { font-size: 19px; font-weight: 590; letter-spacing: -0.01em; }
+    .result-head .meta { font-family: var(--font-mono); font-size: 12px; color: var(--fg-4); }
+    .rank-list { display: grid; gap: var(--gap-sm); }
+    .rank-item {
+      display: grid; grid-template-columns: 44px 1fr; gap: var(--gap-md);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; background: rgba(255,255,255,0.02); align-items: start;
+    }
+    [data-theme="light"] .rank-item { background: #fff; }
+    .rank-item.top { border-color: color-mix(in oklch, var(--accent) 55%, transparent); background: var(--accent-soft); }
+    .rank-badge {
+      width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+      font-family: var(--font-mono); font-size: 14px; font-weight: 590; color: var(--fg-2);
+      border: 1px solid var(--border); background: var(--surface);
+    }
+    .rank-item.top .rank-badge { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .rank-body .rn { font-size: 15.5px; font-weight: 590; color: var(--fg); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .rank-body .rn .score { font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-4); font-weight: 400; }
+    .rank-body .why { font-size: 13px; color: var(--fg-3); margin-top: 4px; line-height: 1.55; }
+    .rank-body .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .tag {
+      display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--fg-3); font-size: 11.5px; font-weight: 510;
+    }
+    .tag.accent { color: var(--accent-bright); border-color: color-mix(in oklch, var(--accent) 45%, transparent); }
+    .result-avoid { margin-top: var(--gap-md); }
+    .result-avoid .av-title { font-size: 12.5px; font-weight: 590; color: var(--fg-3); margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+    .result-avoid .av-title::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); }
+    .avoid-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .avoid-chip {
+      padding: 6px 12px; border-radius: 999px; border: 1px solid color-mix(in oklch, var(--danger) 35%, transparent);
+      color: var(--fg-2); font-size: 12.5px; font-weight: 510;
+    }
+    .result-note { margin-top: var(--gap-md); font-size: 12.5px; color: var(--fg-4); line-height: 1.6; }
+    .result-loading {
+      border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--gap-xl);
+      display: grid; place-items: center; min-height: 160px; text-align: center;
+    }
+    .result-loading[hidden] { display: none; }
+    .spinner {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2.5px solid var(--border); border-top-color: var(--accent-bright);
+      animation: spin 0.7s linear infinite; margin-bottom: var(--gap-md);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.6s; } }
+
+    /* ═══ model map ═══ */
+    .model-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: var(--gap-md); }
+    .model-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 20px; display: flex; flex-direction: column; gap: 12px;
+      transition: border-color 0.18s ease, transform 0.18s ease;
+    }
+    .model-card:hover { border-color: color-mix(in oklch, var(--accent) 40%, var(--border)); transform: translateY(-2px); }
+    .model-card:focus-within { border-color: var(--accent-bright); }
+    .model-card:has(input:focus-visible) { border-color: var(--accent-bright); outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+    .mc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .mc-name { font-size: 17px; font-weight: 590; letter-spacing: -0.01em; }
+    .mc-provider { font-size: 12px; color: var(--fg-4); margin-top: 2px; }
+    .mc-tier { font-family: var(--font-mono); font-size: 11px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--fg-3); letter-spacing: 0.05em; }
+    .mc-tier.s { color: var(--emerald); border-color: color-mix(in oklch, var(--emerald) 40%, transparent); }
+    .mc-positioning { font-size: 13.5px; color: var(--fg-2); line-height: 1.55; }
+    .mc-kw { display: flex; gap: 6px; flex-wrap: wrap; }
+    .mc-radar { display: grid; place-items: center; padding-block: 4px; }
+    .mc-radar svg { width: 150px; height: 150px; }
+    .mc-lists { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-md); border-top: 1px solid var(--border-subtle); padding-top: 12px; }
+    .mc-list h4 { font-size: 11px; font-weight: 590; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fg-4); margin-bottom: 7px; }
+    .mc-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .mc-list li { font-size: 12.5px; color: var(--fg-3); line-height: 1.45; padding-left: 13px; position: relative; }
+    .mc-list.good li::before { content: ""; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--emerald); }
+    .mc-list.bad li::before { content: ""; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--fg-4); }
+    .mc-foot { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 10px; }
+    .mc-foot .price { font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-4); }
+    .mc-detail-btn {
+      background: transparent; border: 0; color: var(--accent-bright); font-size: 13px; font-weight: 510;
+      padding: 4px 6px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .mc-detail-btn:hover { color: var(--accent-hover); }
+    .mc-detail-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+    .mc-detail-btn svg { width: 13px; height: 13px; transition: transform 0.15s ease; }
+    .mc-detail-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .mc-detail { display: none; border-top: 1px solid var(--border-subtle); padding-top: 14px; }
+    .mc-detail.open { display: grid; gap: 14px; }
+    .mc-detail h4 { font-size: 11px; font-weight: 590; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fg-4); margin-bottom: 6px; }
+    .mc-detail table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .mc-detail td { padding: 5px 0; border-bottom: 1px solid var(--border-subtle); color: var(--fg-3); }
+    .mc-detail td:first-child { color: var(--fg-2); width: 42%; }
+    .bar { height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; min-width: 60px; }
+    .bar > span { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+    .cap-grid { display: grid; gap: 6px; }
+    .cap-row { display: grid; grid-template-columns: 74px 1fr 22px; gap: 10px; align-items: center; font-size: 12px; color: var(--fg-3); }
+    .cap-row .n { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); text-align: right; }
+
+    /* ═══ task quick picker ═══ */
+    .task-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+    .task-btn {
+      text-align: left; padding: 14px 16px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--panel); color: var(--fg-2);
+      font-size: 14px; font-weight: 510; line-height: 1.4;
+      transition: all 0.15s ease; display: flex; align-items: center; gap: 10px;
+    }
+    .task-btn:hover { border-color: var(--accent); color: var(--fg); }
+    .task-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+    .task-btn .kbd { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); margin-left: auto; }
+    .task-result { margin-top: var(--gap-lg); }
+    .task-result[hidden] { display: none; }
+
+    /* ═══ compare ═══ */
+    .compare-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: var(--gap-md);
+      flex-wrap: wrap; margin-bottom: var(--gap-md);
+    }
+    .compare-picks { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pick-chip {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 8px 6px 14px;
+      border-radius: 999px; border: 1px solid var(--border); background: var(--panel);
+      font-size: 13px; font-weight: 510; color: var(--fg-2);
+    }
+    .pick-chip button {
+      width: 20px; height: 20px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.08);
+      color: var(--fg-3); font-size: 12px; display: grid; place-items: center;
+    }
+    [data-theme="light"] .pick-chip button { background: rgba(20,22,26,0.08); }
+    .pick-chip button:hover { background: var(--danger); color: #fff; }
+    .compare-empty {
+      border: 1px dashed var(--border); border-radius: var(--radius-lg); padding: var(--gap-xl) var(--gap-lg);
+      text-align: center; color: var(--fg-3); font-size: 14px;
+    }
+    .compare-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+    .compare-table th, .compare-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+    .compare-table thead th { background: var(--panel); font-size: 12px; font-weight: 590; color: var(--fg-2); letter-spacing: 0.01em; }
+    .compare-table thead th:first-child { width: 130px; color: var(--fg-4); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .compare-table tbody tr:first-child td { padding-top: 16px; }
+    .compare-table td { color: var(--fg-3); }
+    .compare-table td:first-child { color: var(--fg-4); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+    .compare-table .cap-bar { display: grid; gap: 5px; }
+    .compare-table .c-row { display: grid; grid-template-columns: 64px 1fr 20px; gap: 8px; align-items: center; font-size: 12px; color: var(--fg-3); }
+    .compare-table .c-row .n { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); text-align: right; }
+
+    /* ═══ heatmap ═══ */
+    .heat-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .heat-table { border-collapse: collapse; font-size: 12.5px; min-width: 860px; width: 100%; }
+    .heat-table th, .heat-table td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--border-subtle); }
+    .heat-table thead th { position: sticky; top: 0; background: var(--panel); font-size: 11.5px; font-weight: 510; color: var(--fg-2); white-space: nowrap; }
+    .heat-table thead th:first-child, .heat-table tbody td:first-child { text-align: left; color: var(--fg-2); font-weight: 510; white-space: nowrap; }
+    .heat-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+    [data-theme="light"] .heat-table tbody tr:hover td { background: rgba(20,22,26,0.03); }
+    .lv {
+      display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px;
+      font-family: var(--font-mono); font-size: 11.5px; font-weight: 590;
+    }
+    .lv.s { background: color-mix(in oklch, var(--success) 26%, transparent); color: var(--emerald); border: 1px solid color-mix(in oklch, var(--success) 45%, transparent); }
+    .lv.a { background: color-mix(in oklch, var(--accent) 24%, transparent); color: var(--accent-bright); border: 1px solid color-mix(in oklch, var(--accent) 45%, transparent); }
+    .lv.b { background: rgba(255,255,255,0.04); color: var(--fg-2); border: 1px solid var(--border); }
+    [data-theme="light"] .lv.b { background: rgba(20,22,26,0.04); }
+    .lv.c { color: var(--fg-4); border: 1px dashed var(--border); }
+    .lv.na { color: var(--fg-4); opacity: 0.4; }
+    .heat-legend { display: flex; gap: var(--gap-md); flex-wrap: wrap; margin-top: var(--gap-md); font-size: 12.5px; color: var(--fg-3); }
+    .heat-legend .item { display: flex; align-items: center; gap: 7px; }
+    .heat-note { margin-top: 12px; font-size: 12px; color: var(--fg-4); }
+
+    /* ═══ cost ═══ */
+    .cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-lg); align-items: start; }
+    @media (max-width: 960px) { .cost-grid { grid-template-columns: 1fr; } }
+    .cost-bars { display: grid; gap: 18px; }
+    .cost-bar-row { display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: center; }
+    .cost-bar-row .m { font-size: 13px; font-weight: 510; color: var(--fg-2); }
+    .cost-bar-row .bar { height: 8px; }
+    .cost-bar-row .bar.in > span { background: var(--accent); }
+    .cost-bar-row .bar.out > span { background: var(--accent-hover); }
+    .cost-bar-row .v { font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-3); text-align: right; min-width: 86px; }
+    .cost-pair { display: grid; gap: 6px; }
+    .cost-label { font-size: 11px; color: var(--fg-4); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+    .bench-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .bench-table th, .bench-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+    .bench-table th { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 400; }
+    .bench-table td { color: var(--fg-3); }
+    .bench-table td:first-child { color: var(--fg-2); font-weight: 510; white-space: nowrap; }
+    .bench-table .num { font-family: var(--font-mono); color: var(--fg); }
+
+    /* ═══ footer ═══ */
+    .pagefoot { padding-block: var(--gap-xl); border-top: 1px solid var(--border-subtle); color: var(--fg-4); font-size: 12.5px; }
+    .pagefoot-inner { display: flex; justify-content: space-between; gap: var(--gap-md); flex-wrap: wrap; }
+    .pagefoot a { color: var(--fg-3); }
+    .pagefoot a:hover { color: var(--fg); }
+    .foot-note { margin-top: 10px; max-width: 70ch; line-height: 1.7; }
+
+    /* ═══ modal ═══ */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 100;
+      display: grid; place-items: center; padding: 24px; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+      max-width: 720px; width: 100%; max-height: 86vh; overflow-y: auto; padding: 28px;
+      transform: translateY(10px); transition: transform 0.22s ease;
+    }
+    .modal-backdrop.open .modal { transform: translateY(0); }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--gap-md); margin-bottom: 18px; }
+    .modal-head h3 { font-size: 22px; font-weight: 590; letter-spacing: -0.02em; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03); color: var(--fg-3); display: grid; place-items: center;
+    }
+    .modal-close:hover { color: var(--fg); }
+    .modal-close svg { width: 15px; height: 15px; }
+    .modal-body { display: grid; gap: 18px; }
+    .modal-body .two-col { display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--gap-lg); align-items: start; }
+    @media (max-width: 640px) { .modal-body .two-col { grid-template-columns: 1fr; } }
+    .modal .mc-list ul { gap: 6px; }
+    .modal .mc-list li { font-size: 13px; }
+    .modal .section-label { font-size: 11px; font-weight: 590; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fg-4); margin-bottom: 8px; }
+    .modal .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .modal .spec-table td { padding: 7px 0; border-bottom: 1px solid var(--border-subtle); }
+    .modal .spec-table td:first-child { color: var(--fg-4); width: 120px; }
+    .modal .spec-table td:last-child { color: var(--fg-2); }
+    .modal .src-list { font-size: 12.5px; color: var(--fg-4); line-height: 1.7; }
+    .modal .src-list a { color: var(--fg-3); }
+
+    /* ═══ misc ═══ */
+    .skip-link {
+      position: absolute; left: -9999px; top: 0; background: var(--accent); color: var(--on-accent);
+      padding: 10px 16px; border-radius: 0 0 8px 0; z-index: 200; font-size: 14px;
+    }
+    .skip-link:focus { left: 0; }
+    :focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+    .note-box {
+      border: 1px solid var(--border); border-left: 2px solid var(--accent);
+      border-radius: var(--radius); padding: 14px 16px; font-size: 13px; color: var(--fg-3); line-height: 1.65;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      html { scroll-behavior: auto; }
+    }
+    @media (max-width: 760px) {
+      .topnav nav { display: none; }
+      .container { padding-inline: 18px; }
+      .mc-lists { grid-template-columns: 1fr; }
+      .result-head { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#selector">跳到选型工具</a>
+
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <span class="logo">
+        <span class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
+        </span>
+        AI 编程模型选型
+      </span>
+      <nav aria-label="主导航">
+        <a href="#selector">开始选择</a>
+        <a href="#models">模型地图</a>
+        <a href="#tasks">任务速选</a>
+        <a href="#compare">对比</a>
+        <a href="#heatmap">热力图</a>
+        <a href="#cost">成本与基准</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深浅色模式" title="切换深浅色模式">
+          <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+          <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="display:none"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3 19 19M19 5l-1.7 1.7M6.7 17.3 5 19"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="content">
+    <!-- ═══ Hero ═══ -->
+    <section class="section hero" data-od-id="hero" style="padding-bottom: clamp(48px, 7vw, 88px);">
+      <div class="container hero-inner">
+        <p class="eyebrow">AI Coding Model Selector · 2026-08</p>
+        <h1>哪个 AI 最适合<br/>你的项目？<span class="grad">不是谁最强，而是谁最合适。</span></h1>
+        <p class="lead">选型不是排行榜。输入你的项目类型、规模与任务，10 秒内得到三档推荐 + 明确的"不优先"清单，每个结论都附原因与关键能力依据。</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#selector">开始选择模型</a>
+          <a class="btn btn-secondary" href="#models">查看全部模型</a>
+        </div>
+        <div class="hero-strip">
+          <span class="strip-item"><span class="dot" aria-hidden="true"></span>11 个主流模型纳入比较</span>
+          <span class="strip-item"><span class="dot amber" aria-hidden="true"></span>26 类项目 · 17 类任务</span>
+          <span class="strip-item"><span class="dot" aria-hidden="true"></span>数据更新 2026-08-27</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 项目选择器（核心） ═══ -->
+    <section class="section" data-od-id="selector" id="selector">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-num">01 · Selector</span>
+          <h2>告诉我你的项目</h2>
+          <p>选择项目类型、规模、任务和你的优先偏好，系统按加权评分实时推荐——每个推荐都带原因，"不优先"同样明确列出。</p>
+        </div>
+        <div class="selector-shell">
+          <form class="panel" id="selectorForm" novalidate>
+            <div class="field">
+              <label id="lbl-type">项目类型</label>
+              <div class="chip-row" role="group" aria-labelledby="lbl-type" id="typeChips"></div>
+            </div>
+            <div class="field">
+              <label id="lbl-scale">项目规模</label>
+              <div class="seg" role="group" aria-labelledby="lbl-scale" id="scaleSeg"></div>
+            </div>
+            <div class="field">
+              <label id="lbl-task">任务类型</label>
+              <div class="chip-row" role="group" aria-labelledby="lbl-task" id="taskChips"></div>
+            </div>
+            <div class="field">
+              <label id="lbl-pref">你最关心什么</label>
+              <div class="chip-row" role="group" aria-labelledby="lbl-pref" id="prefChips"></div>
+            </div>
+            <div class="field">
+              <label id="lbl-lang">项目主要语言</label>
+              <div class="seg" role="group" aria-labelledby="lbl-lang" id="langSeg"></div>
+            </div>
+            <div class="field">
+              <label id="lbl-agent">是否长期让 Agent 自主工作</label>
+              <div class="seg" role="group" aria-labelledby="lbl-agent" id="agentSeg"></div>
+            </div>
+            <button class="btn btn-primary selector-submit" type="submit">生成推荐</button>
+            <div class="selector-meta">
+              <span id="formStatus" role="status">请至少选择项目类型与任务类型</span>
+              <span class="hint">加权评分：类型 25% · 任务 20% · 上下文 15% · Agent 15% · 代码 10% · 专项 10% · 成本 5%；以中文为主另叠中文能力分</span>
+            </div>
+          </form>
+
+          <div id="resultArea">
+            <div class="result-empty" id="resultEmpty">
+              <div>
+                <div class="big" aria-hidden="true">→</div>
+                <p>选好项目类型和任务后，这里会给出<b>第一 / 第二 / 第三推荐</b>、各自的原因，以及<b>不建议优先使用</b>的模型清单。</p>
+              </div>
+            </div>
+            <div class="result-loading" id="resultLoading" hidden role="status" aria-live="polite">
+              <div>
+                <div class="spinner" aria-hidden="true"></div>
+                <p>正在计算项目匹配分…</p>
+              </div>
+            </div>
+            <div class="result-shell" id="resultShell" hidden>
+              <div class="result-head">
+                <h3 id="resultTitle">推荐结果</h3>
+                <span class="meta" id="resultMeta"></span>
+              </div>
+              <div class="rank-list" id="rankList"></div>
+              <div class="result-avoid" id="resultAvoid"></div>
+              <p class="result-note" id="resultNote"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 模型能力地图 ═══ -->
+    <section class="section" data-od-id="models" id="models">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-num">02 · Model Map</span>
+          <h2>模型能力地图</h2>
+          <p>11 个模型家族的能力画像。星级是选型层面的综合判断（1–5），用于导航而非统一 Benchmark 实测；每个模型都同时给出"最适合"与"不优先"，点击卡片可查看完整规格。</p>
+        </div>
+        <div class="model-grid" id="modelGrid"></div>
+      </div>
+    </section>
+
+    <!-- ═══ 任务速选 ═══ -->
+    <section class="section" data-od-id="tasks" id="tasks">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-num">03 · Task Picker</span>
+          <h2>我现在要做…</h2>
+          <p>按任务直接给结论：首选 + 次选 + 推荐原因。适合已经有明确任务、不想填完整表单的场景。</p>
+        </div>
+        <div class="task-grid" id="taskGrid"></div>
+        <div class="task-result panel" id="taskResult" hidden>
+          <div class="result-head">
+            <h3 id="taskResultTitle">任务推荐</h3>
+          </div>
+          <div class="rank-list" id="taskRankList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ AI → 项目 反向查询 ═══ -->
+    <section class="section" data-od-id="reverse" id="reverse">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-num">04 · Reverse Lookup</span>
+          <h2>这个模型适合什么项目？</h2>
+          <p>从模型出发反向查询：点击任一模型卡片右上角的"详情"，查看它最适合与不优先的场景；也可在下方输入关键词过滤。</p>
+        </div>
+        <div class="panel" style="margin-bottom: var(--gap-md);">
+          <div class="field" style="margin-bottom: 0;">
+            <label for="filterInput">过滤模型（按名称 / 定位 / 关键词）</label>
+            <input class="input" id="filterInput" type="search" placeholder="例如：中文、Rust、低成本、大仓库…" autocomplete="off" />
+          </div>
+        </div>
+        <div class="model-grid" id="reverseGrid"></div>
+        <p class="heat-note" id="reverseEmpty" hidden style="text-align:center; padding: 40px 0;">没有匹配的模型，换个关键词试试。</p>
+      </div>
+    </section>
+
+    <!-- ═══ 模型对比 ═══ -->
+    <section class="section" data-od-id="compare" id="compare">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-num">05 · Compare</span>
+          <h2>多模型对比</h2>
+          <p>勾选 2–4 个模型，对比能力、Context、API 成本与适合场景。对比不是总分排名——不同项目看重的维度不同。</p>
+        </div>
+        <div class="compare-bar panel">
+          <div class="compare-picks" id="comparePicks" role="group" aria-label="已选模型"></div>
+          <span class="meta" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-4);" id="compareCount">已选 0 / 4</span>
+        </div>
+        <div id="compareArea">
+          <div class="compare-empty" id="compareEmpty">
+            <p style="margin-bottom: 14px;"><b>尚未选择模型</b></p>
+            <p style="font-size: 13.5px; color: var(--fg-4);">在下方模型中勾选 2–4 个后，对比表会出现在这里。</p>
+          </div>
+          <div class="compare-wrap" id="compareWrap" hidden>
+            <table class="compare-table" id="compareTable"></table>
+          </div>
+        </div>
+        <div class="model-grid" style="margin-top: var(--gap-lg);" id="compareGrid"></div>
+      </div>
+    </section>
+
+    <!-- ═══ 热力图 ═══ -->
+    <section class="section" data-od-id="heatmap" id="heatmap">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-num">06 · Fit Heatmap</span>
+          <h2>项目 × 模型 匹配热力图</h2>
+          <p>S = 第一推荐，A = 第二推荐，B = 第三推荐，C = 不优先（存在明显更优选项，不代表模型不能完成任务）。"—" 表示该表未收录此模型。</p>
+        </div>
+        <div class="heat-wrap">
+          <table class="heat-table" id="heatTable">
+            <thead><tr id="heatHead"><th>项目类型</th></tr></thead>
+            <tbody id="heatBody"></tbody>
+          </table>
+        </div>
+        <div class="heat-legend">
+          <span class="item"><span class="lv s">S</span> 最佳</span>
+          <span class="item"><span class="lv a">A</span> 推荐</span>
+          <span class="item"><span class="lv b">B</span> 可用</span>
+          <span class="item"><span class="lv c">C</span> 不优先</span>
+          <span class="item"><span class="lv na">—</span> 未收录</span>
+        </div>
+        <p class="heat-note">热力图等级来自"项目 → AI"推荐表；"不优先"仅表示该项目存在更明显的模型优势。</p>
+      </div>
+    </section>
+
+    <!-- ═══ 成本与基准 ═══ -->
+    <section class="section" data-od-id="cost" id="cost">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-num">07 · Cost &amp; Benchmarks</span>
+          <h2>成本与 Benchmark</h2>
+          <p>API 标准价格与公开 Benchmark。实际成本受缓存、上下文长度、推理档位与平台折扣影响；不同来源的 Benchmark 采用不同 harness，不能直接横向排名。</p>
+        </div>
+        <div class="cost-grid">
+          <div class="panel">
+            <h3 style="font-size: 16px; font-weight: 590; margin-bottom: 6px;">API 标准价格</h3>
+            <p style="font-size: 12.5px; color: var(--fg-4); margin-bottom: 18px;">按 1M tokens 计价，仅收录官方已公布的定价；深色条为输入、浅色条为输出。</p>
+            <div class="cost-bars" id="costBars"></div>
+            <p style="font-size: 12px; color: var(--fg-4); margin-top: 16px;">其余模型（Claude Opus 5、GPT-5.6 Sol、DeepSeek 系、Kimi K3、GLM-5.2）官方价格页未在本轮纳入统计，不填数字以免误导。</p>
+          </div>
+          <div class="panel">
+            <h3 style="font-size: 16px; font-weight: 590; margin-bottom: 6px;">公开 Benchmark 摘录</h3>
+            <p style="font-size: 12.5px; color: var(--fg-4); margin-bottom: 18px;">来自官方发布或权威第三方汇总（见资料来源）。同一行内可比；跨行数字因 harness 不同仅作参考。</p>
+            <div class="heat-wrap" style="border: 0;">
+              <table class="bench-table" id="benchTable">
+                <thead><tr><th>模型</th><th>Benchmark</th><th>分数</th><th>来源</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="note-box" style="margin-top: var(--gap-lg);">
+          <b>资料来源：</b>OpenAI GPT-5.6 官方模型页与发布资料、DeepSeek 官方 API 文档与价格页、xAI Grok 4.6 官方发布与开发文档、Meta Muse Spark 1.2 第三方 Benchmark 汇总（smartscope.blog）、Kimi K3 官方技术博客、Z.ai GLM-5.3 Flash 官方博客与模型文档（z.ai/blog/glm-5.3-flash、docs.z.ai、zcode.z.ai）。每条外部事实保留来源字段，详见各模型详情。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pagefoot" data-od-id="footer">
+    <div class="container pagefoot-inner">
+      <div>
+        <span style="font-weight: 590; color: var(--fg-3);">AI Coding Model Selector</span>
+        <p class="foot-note">"项目适配度"是综合判断，不是官方排名。"不优先"表示存在明显更优选项，不代表模型不能完成任务。模型版本与价格快速变化，数据更新于 2026-08-27。</p>
+      </div>
+      <div style="text-align: right; display: grid; gap: 6px;">
+        <span>核心页面：选择器 / 模型地图 / 对比 / 热力图</span>
+        <span>© 2026 · AI 编程模型项目选型指南</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══ 模型详情弹窗 ═══ -->
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal" id="modalBox">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalTitle">模型详情</h3>
+          <p id="modalSub" style="font-size: 13px; color: var(--fg-4); margin-top: 4px;"></p>
+        </div>
+        <button class="modal-close" id="modalClose" type="button" aria-label="关闭详情">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+  /* ═══════════════ 数据 ═══════════════ */
+  const MODELS = [
+    {
+      id: "opus5", name: "Claude Opus 5", provider: "Anthropic", tier: "S",
+      positioning: "顶级复杂工程模型——深度推理 / 大型 Repo / Agent，高难度项目专家",
+      tags: ["深度推理", "大型工程", "架构", "重构"],
+      caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 5, systems: 4, chinese: 4, speed: 3, cost: 2 },
+      context: "未公布", priceIn: null, priceOut: null,
+      best: ["大型后端", "复杂 SaaS", "大型 Repo", "老项目重构", "架构设计", "复杂数据库设计", "深度 Debug", "高难度 Agent"],
+      avoid: ["简单 CRUD", "简单 Landing Page", "大量重复脚本", "成本敏感的批量任务"],
+      benchmarks: [],
+      notes: "深度理解与复杂推理最强档；在 Meta 对比数据中 Terminal-Bench 2.1 为 86.7%、DeepSWE 1.1 为 65.0%（同一对比中最高）。适合把最难的问题交给它。"
+    },
+    {
+      id: "sol56", name: "GPT-5.6 Sol", provider: "OpenAI", tier: "S",
+      positioning: "GPT-5.6 旗舰档——综合工程 / Terminal / Agent，高能力工程师",
+      tags: ["工程执行", "Terminal", "综合能力", "Agent"],
+      caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 5, systems: 4, chinese: 4, speed: 4, cost: 3 },
+      context: "约 1M 级", priceIn: null, priceOut: null,
+      best: ["复杂工程", "Terminal Agent", "DevOps", "iOS/macOS", "Git / CI/CD", "复杂自动化", "工程级 Debug"],
+      avoid: ["极大量简单代码生成", "纯成本敏感任务", "简单 MVP"],
+      benchmarks: [],
+      notes: "OpenAI GPT-5.6 系列旗舰能力档（Sol / Terra / Luna 三档中的 Sol）。工程执行与 Terminal 能力综合最强，Apple 生态项目优先。"
+    },
+    {
+      id: "luna56", name: "GPT-5.6 Luna", provider: "OpenAI", tier: "A",
+      positioning: "GPT-5.6 高性价比档——高并发 / 大量 Coding / 成本效率，廉价 GPT 主力",
+      tags: ["高并发", "低成本", "高吞吐"],
+      caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
+      context: "约 1.05M", priceIn: 0.20, priceOut: 1.20,
+      best: ["高频 Coding", "API / CRUD", "批量代码生成", "测试代码生成", "普通 Debug", "自动化脚本", "成本敏感型 Agent"],
+      avoid: ["最复杂的架构问题", "极难根因分析", "超关键生产系统改造"],
+      benchmarks: [],
+      notes: "官方 API 显示约 1.05M context、最高 128K 输出；官方定价输入 $0.20 / 1M tokens、输出 $1.20 / 1M tokens。核心竞争力是单位成本与并发效率，不是 Sol 的弱化版。"
+    },
+    {
+      id: "grok46", name: "Grok 4.6", provider: "xAI", tier: "S",
+      positioning: "新一代前沿 Agent 模型——推理 / 长任务 / Coding Agent，难 + 快",
+      tags: ["难+快", "Agent", "Systems", "Debug"],
+      caps: { reasoning: 5, agent: 5, repo: 4, context: 4, frontend: 4, iosMac: 5, systems: 5, chinese: 3, speed: 4, cost: 4 },
+      context: "500K", priceIn: 2.0, priceOut: 6.0,
+      best: ["复杂 Debug", "长时间 Agent", "Mac App", "Rust / C / C++", "系统工具", "大型重构", "高难度工程"],
+      avoid: ["简单 CRUD", "单纯批量代码生成", "成本极度敏感的任务"],
+      benchmarks: [],
+      notes: "xAI 官方称其重点强化长时间运行 Agent、复杂 Coding、跨代码库工作；官方 API 为 500K context，支持多档 reasoning、Function Calling、Web Search、Code Execution。"
+    },
+    {
+      id: "grok45", name: "Grok 4.5", provider: "xAI", tier: "A",
+      positioning: "高速 Coding 模型——快速开发 / Web / MVP / Systems，极速开发工程师",
+      tags: ["极速 Coding", "Web", "MVP"],
+      caps: { reasoning: 4, agent: 4, repo: 4, context: 4, frontend: 5, iosMac: 4, systems: 5, chinese: 3, speed: 5, cost: 4 },
+      context: "未公布", priceIn: null, priceOut: null,
+      best: ["Web MVP", "React / Next.js", "Dashboard", "Landing Page", "Node.js", "CLI", "快速原型", "快速 Rust/C++ 开发"],
+      avoid: ["超大型老仓库重构", "极复杂数据库架构", "极难生产 Bug"],
+      benchmarks: [{ label: "Terminal-Bench 2.1", value: "81.6", src: "Meta 对比数据" }, { label: "DeepSWE 1.1", value: "56.6", src: "Meta 对比数据" }],
+      notes: "速度型工程师：从 0 到 1 快速产出、Web 生成强；在 Meta 对比数据中 Terminal-Bench 2.1 为 81.6%、DeepSWE 1.1 为 56.6%。不适合超大型老仓库重构与极难生产 Bug。"
+    },
+    {
+      id: "muse12", name: "Muse Spark 1.2", provider: "Meta", tier: "A",
+      positioning: "长上下文 Coding 模型——大 Repo / 长 Context / Agent，代码仓库专家",
+      tags: ["大 Repo", "1M Context", "Agent"],
+      caps: { reasoning: 4, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 3, speed: 4, cost: 5 },
+      context: "约 1.05M", priceIn: 1.25, priceOut: 4.25,
+      best: ["大型 Repo", "长上下文项目", "跨目录修改", "大批量重构", "Agent 长任务", "代码库迁移"],
+      avoid: ["很简单的单文件任务", "对 UI 美感要求极高的小型前端项目"],
+      benchmarks: [{ label: "Terminal-Bench 2.1", value: "82.9", src: "Meta 对比数据" }, { label: "DeepSWE 1.1", value: "59.3", src: "Meta 对比数据" }, { label: "Meta 440 题 Coding Bench", value: "70.6", src: "Meta 内部" }],
+      notes: "核心优势是\"大代码量 + 长上下文 + Agent + 成本\"的组合：约 1.05M context，标准价格约 $1.25 / 1M input、$4.25 / 1M output。适合大型 Repo 与批量修改的专门模型。"
+    },
+    {
+      id: "dsv4pro", name: "DeepSeek V4 Pro", provider: "DeepSeek", tier: "A",
+      positioning: "高性价比强模型——中高难度 Coding / 批量开发，低成本强力工程师",
+      tags: ["性价比", "中高难度", "批量"],
+      caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 4, cost: 5 },
+      context: "未公布", priceIn: null, priceOut: null,
+      best: ["中高难度 Coding", "Python / Node", "后端", "API", "批量 Coding", "成本敏感项目"],
+      avoid: ["顶级架构", "极难 Debug", "高风险核心系统重构"],
+      benchmarks: [],
+      notes: "成本低、能力高的主力档：常规后端、API、脚本与批量开发的好选择；顶级架构与极难 Debug 建议切高阶模型。"
+    },
+    {
+      id: "dsv4flash", name: "DeepSeek V4 Flash", provider: "DeepSeek", tier: "A",
+      positioning: "超高性价比 Agent 模型——高频 Coding / Agent / 1M Context，批量 Coding 主力",
+      tags: ["超低成本", "1M Context", "高频 Agent"],
+      caps: { reasoning: 4, agent: 5, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
+      context: "1M", priceIn: null, priceOut: null,
+      best: ["大量 Coding", "CRUD", "Python 脚本", "Node API", "爬虫", "数据处理", "批量修改", "高频 Agent", "长上下文普通工程"],
+      avoid: ["最复杂架构", "高风险生产系统", "极难根因分析"],
+      benchmarks: [
+        { label: "Terminal-Bench 2.1", value: "82.7", src: "DeepSeek 官方" },
+        { label: "NL2Repo", value: "54.2", src: "DeepSeek 官方" },
+        { label: "DeepSWE", value: "54.4", src: "DeepSeek 官方" },
+        { label: "Toolathlon verified", value: "70.3", src: "DeepSeek 官方" },
+        { label: "DSBench-FullStack", value: "68.7", src: "DeepSeek 官方" }
+      ],
+      notes: "官方文档显示支持 1M context、最高 384K 输出、Tool Calls、Responses API，并专门适配 Codex。适合高频 Agent Coding、批量改代码、脚本、CRUD、数据处理；核心架构与极难 Debug 应切更高阶模型。"
+    },
+    {
+      id: "kimi3", name: "Kimi K3", provider: "Moonshot AI", tier: "A",
+      positioning: "长上下文中文强模型——中文 / 长任务 / Coding Agent，中文项目专家",
+      tags: ["中文", "长上下文", "Agent"],
+      caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 4 },
+      context: "长上下文", priceIn: null, priceOut: null,
+      best: ["中文项目", "长上下文项目", "大型 Agent", "大型中文业务系统", "中文需求分析"],
+      avoid: ["纯追求最快 Web MVP", "极简单脚本"],
+      benchmarks: [
+        { label: "DeepSWE", value: "67.5", src: "Kimi 官方" },
+        { label: "Terminal-Bench 2.1", value: "88.3", src: "Kimi 官方" },
+        { label: "FrontierSWE", value: "81.2", src: "Kimi 官方" },
+        { label: "SWE-Marathon", value: "42.0", src: "Kimi 官方" }
+      ],
+      notes: "中文大型项目、长任务、长上下文与 Agent Coding 的组合定位；需要中文业务语义理解的项目优先。"
+    },
+    {
+      id: "glm52", name: "GLM-5.2", provider: "智谱 AI", tier: "A",
+      positioning: "中文 Agent / 工程模型——中文 / Agent / 国内工程，国产 Agent 工程师",
+      tags: ["中文", "国内业务", "Agent"],
+      caps: { reasoning: 4, agent: 5, repo: 4, context: 4, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 5 },
+      context: "未公布", priceIn: null, priceOut: null,
+      best: ["中文业务系统", "国内 SaaS", "中文 Agent", "国内工程生态"],
+      avoid: ["最前沿系统编程", "极复杂全球化工程"],
+      benchmarks: [],
+      notes: "中文生态适配度高：中文业务逻辑、Agent 工作流与国内工程场景优先；前沿系统编程建议交给专门模型。"
+    },
+    {
+      id: "glm53", name: "GLM-5.3 Flash", provider: "Z.ai / 智谱", tier: "A",
+      positioning: "1M Context + 原生多模态 + 强 Agent Coding——以 Flash 级成本提供高性价比的长任务工程能力",
+      tags: ["1M Context", "Agent Coding", "Native Multimodal", "Browser Use", "Computer Use"],
+      caps: { reasoning: 4, agent: 5, repo: 5, context: 5, frontend: 5, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 5 },
+      context: "1M", priceIn: 0.15, priceOut: 0.50,
+      best: ["大型 Repo", "Long-Horizon Agent", "Web / SaaS", "UI 复刻", "Browser / Computer Use", "批量 Coding", "多文件重构"],
+      avoid: ["极端复杂架构推理", "极高风险核心系统设计", "单纯追求最低延迟的简单任务", "纯视觉专项任务"],
+      benchmarks: [
+        { label: "Terminal-Bench 2.1", value: "84.3", src: "Z.ai 官方" },
+        { label: "DeepSWE v1.1", value: "63.4", src: "Z.ai 官方" },
+        { label: "Toolathlon Verified", value: "78.4", src: "Z.ai 官方" },
+        { label: "AutomationBench", value: "48.8", src: "Z.ai 官方" },
+        { label: "Agents' Last Exam", value: "26.3", src: "Z.ai 官方" },
+        { label: "HLE w/ Tools", value: "55.3", src: "Z.ai 官方" }
+      ],
+      notes: "2026-08-26 发布的 GLM-5 系列首个原生多模态 MoE（约 320B 总参数 / 18B 激活），重点优化长上下文推理、Coding 与 Agent 任务。官方价格 Input $0.15 / Cached Input $0.03 / Output $0.50（每 1M tokens；限时优惠以官方价格页实时数据为准）。定位是面向 Agent、长上下文和多模态开发场景的高性价比主力，不是\"便宜版 GLM-5\"；适合大型 Repo、Long-Horizon 任务、Screenshot-to-Code 与 Browser/Computer Use 闭环。"
+    }
+  ];
+
+  const PROJECTS = [
+    { id: "ios", name: "iOS App", desc: "原生 iOS 应用", recs: { sol56: "S", opus5: "A", grok46: "B", dsv4flash: "C" }, reason: "Apple API、复杂状态和工程一致性要求高" },
+    { id: "macos", name: "macOS App", desc: "原生 macOS 应用", recs: { grok46: "S", sol56: "A", opus5: "B", dsv4flash: "C" }, reason: "系统 API、权限、文件系统、原生能力" },
+    { id: "swiftui", name: "SwiftUI", desc: "SwiftUI 界面开发", recs: { sol56: "S", opus5: "A", grok46: "B", luna56: "C" }, reason: "UI 状态 + Apple Framework 组合复杂" },
+    { id: "nextjs", name: "Next.js 网站", desc: "Next.js 全栈网站", recs: { grok45: "S", glm53: "A", luna56: "A", sol56: "B", opus5: "C" }, reason: "快速 UI、全栈脚手架、迭代效率" },
+    { id: "react-dash", name: "React Dashboard", desc: "React 数据面板", recs: { grok45: "S", luna56: "A", sol56: "B", opus5: "C" }, reason: "前端生成速度和 UI 迭代最重要" },
+    { id: "saas-mvp", name: "SaaS MVP", desc: "SaaS 从 0 到 1", recs: { grok45: "S", luna56: "A", sol56: "B", opus5: "C" }, reason: "从 0 到 1 速度比极限推理更重要" },
+    { id: "saas-large", name: "大型 SaaS", desc: "规模化 SaaS 产品", recs: { opus5: "S", sol56: "A", glm53: "A", grok46: "B", dsv4flash: "C" }, reason: "架构、模块边界、长期维护" },
+    { id: "legacy-refactor", name: "老项目重构", desc: "存量系统重构", recs: { opus5: "S", grok46: "A", sol56: "B", grok45: "C" }, reason: "需要理解历史代码和隐性依赖" },
+    { id: "big-repo", name: "大型 Repo 分析", desc: "大型代码库分析", recs: { muse12: "S", glm53: "A", opus5: "B", kimi3: "B", luna56: "C" }, reason: "代码量巨大，长上下文价值高" },
+    { id: "bulk-refactor", name: "大批量重构", desc: "跨文件批量改造", recs: { muse12: "S", glm53: "A", dsv4flash: "A", luna56: "B", opus5: "C" }, reason: "需要大量文件操作且成本敏感" },
+    { id: "rust", name: "Rust", desc: "Rust 系统开发", recs: { grok46: "S", grok45: "A", sol56: "B", dsv4flash: "C" }, reason: "系统能力、类型系统、性能推理" },
+    { id: "cpp", name: "C/C++", desc: "C/C++ 开发", recs: { grok46: "S", grok45: "A", sol56: "B", luna56: "C" }, reason: "指针、并发、内存和系统级问题" },
+    { id: "python", name: "Python", desc: "Python 开发", recs: { dsv4pro: "S", dsv4flash: "A", glm53: "B", luna56: "B", opus5: "C" }, reason: "大量常规任务不需要顶级模型" },
+    { id: "nodejs", name: "Node.js", desc: "Node 后端 / 全栈", recs: { grok45: "S", luna56: "A", glm53: "B", dsv4flash: "B", opus5: "C" }, reason: "快速 API、全栈与脚手架" },
+    { id: "java", name: "Java / Spring", desc: "企业级 Java 工程", recs: { sol56: "S", opus5: "A", dsv4pro: "B", grok45: "C" }, reason: "企业工程、架构、规范" },
+    { id: "cli", name: "CLI 工具", desc: "命令行工具", recs: { grok45: "S", grok46: "A", glm53: "B", dsv4flash: "B", opus5: "C" }, reason: "快速迭代和终端效率" },
+    { id: "devops", name: "DevOps", desc: "运维与 CI/CD", recs: { sol56: "S", grok46: "A", opus5: "B", grok45: "C" }, reason: "Shell、Docker、CI/CD、排障" },
+    { id: "agent", name: "AI Agent", desc: "自主智能体开发", recs: { opus5: "S", glm53: "A", grok46: "A", muse12: "B", luna56: "C" }, reason: "需要计划、工具调用、自纠错" },
+    { id: "crawler", name: "爬虫 / 数据采集", desc: "爬虫与采集", recs: { dsv4flash: "S", luna56: "A", dsv4pro: "B", opus5: "C" }, reason: "大量重复 Coding 和数据处理" },
+    { id: "crud", name: "CRUD 后台", desc: "增删改查后台", recs: { dsv4flash: "S", luna56: "A", grok45: "B", opus5: "C" }, reason: "任务结构清晰，不需极限推理" },
+    { id: "data-script", name: "数据处理脚本", desc: "数据处理 / ETL", recs: { dsv4flash: "S", dsv4pro: "A", luna56: "B", opus5: "C" }, reason: "成本效率优先" },
+    { id: "debug-hard", name: "复杂 Debug", desc: "疑难问题排查", recs: { grok46: "S", opus5: "A", sol56: "B", grok45: "C" }, reason: "假设验证和根因分析重要" },
+    { id: "security", name: "安全敏感工程", desc: "安全关键系统", recs: { sol56: "S", opus5: "A", grok46: "B", glm53: "C", luna56: "C" }, reason: "对错误和边界条件更敏感" },
+    { id: "chinese-biz", name: "中文业务系统", desc: "中文业务系统", recs: { kimi3: "S", glm52: "A", glm53: "A", sol56: "B", grok45: "C" }, reason: "中文业务语义和国内生态" },
+    { id: "browser-automation", name: "Browser / Computer Use", desc: "浏览器与电脑自动化", recs: { glm53: "S", sol56: "A", grok46: "B", luna56: "C" }, reason: "Browser Use + 视觉反馈 + 工具调用闭环" },
+    { id: "ui-clone", name: "截图 → UI 还原", desc: "Screenshot-to-Code", recs: { glm53: "S", grok45: "A", sol56: "B", dsv4flash: "C" }, reason: "原生多模态，视觉理解与前端生成结合" }
+  ];
+
+  const TASKS = [
+    { id: "t-web", name: "从 0 做网站", first: "grok45", second: "luna56", third: "glm53", reason: "快速生成完整前端和后端" },
+    { id: "t-app", name: "从 0 做 App", first: "sol56", second: "opus5", reason: "工程完整性更重要" },
+    { id: "t-arch", name: "复杂架构设计", first: "opus5", second: "sol56", reason: "推理深度优先" },
+    { id: "t-debug", name: "生产环境 Bug 排查", first: "grok46", second: "opus5", reason: "根因分析 + 快速迭代" },
+    { id: "t-repo", name: "大仓库分析", first: "muse12", second: "opus5", third: "glm53", reason: "长上下文优势" },
+    { id: "t-bulk", name: "100+ 文件批量修改", first: "muse12", second: "dsv4flash", third: "glm53", reason: "成本与规模兼顾" },
+    { id: "t-py", name: "写一个 Python 脚本", first: "dsv4flash", second: "luna56", reason: "没必要使用顶级模型" },
+    { id: "t-rust", name: "写一个 Rust CLI", first: "grok46", second: "grok45", reason: "系统编程与推理" },
+    { id: "t-react", name: "写 React 页面", first: "grok45", second: "luna56", reason: "前端效率优先" },
+    { id: "t-swiftui", name: "SwiftUI 页面", first: "sol56", second: "grok46", reason: "Apple 技术栈" },
+    { id: "t-docker", name: "Docker / CI/CD", first: "sol56", second: "grok46", reason: "工程执行和终端能力" },
+    { id: "t-agent", name: "自动化 Agent", first: "opus5", second: "grok46", third: "glm53", reason: "计划 + 工具调用 + 自纠错" },
+    { id: "t-api", name: "高频 API 开发", first: "luna56", second: "dsv4flash", reason: "成本效率" },
+    { id: "t-gen", name: "海量代码生成", first: "dsv4flash", second: "luna56", reason: "极高吞吐量" },
+    { id: "t-chinese", name: "中文业务逻辑", first: "kimi3", second: "glm52", reason: "中文理解" },
+    { id: "t-visual", name: "截图还原页面", first: "glm53", second: "grok45", reason: "原生多模态：截图 → 理解 → 改码 → 视觉检查闭环" },
+    { id: "t-browser", name: "Browser Agent 自动修 UI", first: "glm53", second: "grok46", reason: "Browser Use + 视觉反馈 + 长任务" }
+  ];
+
+  const LEVEL_SCORE = { S: 100, A: 80, B: 60, C: 10 };
+  const BASE_WEIGHTS = { project: 0.25, task: 0.20, context: 0.15, agent: 0.15, coding: 0.10, specialty: 0.10, cost: 0.05 };
+  const PREF_WEIGHTS = {
+    quality: { project: 0.20, task: 0.15, context: 0.15, agent: 0.20, coding: 0.15, specialty: 0.10, cost: 0.05 },
+    speed:   { project: 0.20, task: 0.15, context: 0.10, agent: 0.10, coding: 0.15, specialty: 0.10, cost: 0.05, speedBonus: true },
+    cost:    { project: 0.20, task: 0.15, context: 0.10, agent: 0.10, coding: 0.10, specialty: 0.10, cost: 0.25 }
+  };
+  const CAP_KEYS = [
+    ["reasoning", "复杂推理"], ["agent", "Agent"], ["repo", "大型 Repo"], ["context", "长上下文"],
+    ["frontend", "前端"], ["iosMac", "iOS/macOS"], ["systems", "Rust/C++"], ["chinese", "中文工程"],
+    ["speed", "Coding 速度"], ["cost", "成本效率"]
+  ];
+  const SPECIALTY_MAP = {
+    ios: "iosMac", macos: "iosMac", swiftui: "iosMac", rust: "systems", cpp: "systems",
+    python: "coding", nodejs: "coding", nextjs: "frontend", "react-dash": "frontend",
+    chinese_biz: "chinese", devops: "systems", cli: "systems", agent: "agent", crawler: "coding",
+    crud: "coding", "data-script": "coding", java: "coding", debug_hard: "reasoning",
+    security: "reasoning", "saas-mvp": "frontend", "saas-large": "reasoning",
+    "legacy-refactor": "repo", "big-repo": "context", "bulk-refactor": "context",
+    "browser-automation": "agent", "ui-clone": "frontend"
+  };
+
+  const byId = (id) => MODELS.find(m => m.id === id);
+  const $ = (sel) => document.querySelector(sel);
+
+  /* ═══════════════ 工具函数 ═══════════════ */
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+  function radarSVG(m, size) {
+    const n = CAP_KEYS.length, cx = 55, cy = 55, R = 42;
+    const angle = (i) => (Math.PI * 2 * i / n) - Math.PI / 2;
+    const pt = (i, r) => [cx + r * Math.cos(angle(i)), cy + r * Math.sin(angle(i))];
+    let grid = "";
+    for (let g = 1; g <= 4; g++) {
+      const r = R * g / 4;
+      grid += `<polygon points="${CAP_KEYS.map((_, i) => pt(i, r).join(",")).join(" ")}" fill="none" stroke="var(--border)" stroke-width="1"/>`;
+    }
+    const poly = CAP_KEYS.map((k, i) => pt(i, R * (m.caps[k[0]] / 5)).join(",")).join(" ");
+    const dots = CAP_KEYS.map((k, i) => {
+      const [x, y] = pt(i, R * (m.caps[k[0]] / 5));
+      return `<circle cx="${x}" cy="${y}" r="1.8" fill="var(--accent-bright)"/>`;
+    }).join("");
+    const labels = CAP_KEYS.map((k, i) => {
+      const [x, y] = pt(i, R + 13);
+      return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="5.6" fill="var(--fg-3)" font-family="ui-monospace,Menlo,monospace">${k[1].replace("/", "")}</text>`;
+    }).join("");
+    return `<svg viewBox="0 0 110 110" role="img" aria-label="${esc(m.name)}能力雷达图">${grid}<polygon points="${poly}" fill="rgba(94,106,210,0.22)" stroke="var(--accent-bright)" stroke-width="1.3"/>${dots}${labels}</svg>`;
+  }
+
+  function barRow(label, val, max, cls, fmt) {
+    const pct = max > 0 ? Math.round(val / max * 100) : 0;
+    return `<div class="c-row"><span>${label}</span><div class="bar ${cls}"><span style="width:${pct}%"></span></div><span class="n">${fmt ? fmt(val) : val}</span></div>`;
+  }
+
+  /* ═══════════════ 渲染：模型卡片 ═══════════════ */
+  function modelCard(m, opts = {}) {
+    const best = m.best.slice(0, 3).map(x => `<li>${esc(x)}</li>`).join("");
+    const avoid = m.avoid.slice(0, 3).map(x => `<li>${esc(x)}</li>`).join("");
+    const price = m.priceIn ? `$${m.priceIn} / $${m.priceOut} · 1M tok` : "价格未收录";
+    return `
+      <article class="model-card" data-od-id="model-${m.id}">
+        <div class="mc-head">
+          <div>
+            <div class="mc-name">${esc(m.name)}</div>
+            <div class="mc-provider">${esc(m.provider)}</div>
+          </div>
+          <span class="mc-tier ${m.tier === "S" ? "s" : ""}">${m.tier === "S" ? "S · 旗舰" : "A · 主力"}</span>
+        </div>
+        <p class="mc-positioning">${esc(m.positioning)}</p>
+        <div class="mc-kw">${m.tags.map(t => `<span class="tag accent">${esc(t)}</span>`).join("")}</div>
+        <div class="mc-radar">${radarSVG(m)}</div>
+        <div class="mc-lists">
+          <div class="mc-list good"><h4>最适合</h4><ul>${best}</ul></div>
+          <div class="mc-list bad"><h4>不优先</h4><ul>${avoid}</ul></div>
+        </div>
+        <div class="mc-foot">
+          <span class="price">${price} · ${esc(m.context)} ctx</span>
+          <button class="mc-detail-btn" type="button" data-detail="${m.id}" aria-expanded="false">
+            详情 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+      </article>`;
+  }
+
+  function renderModelGrids() {
+    $("#modelGrid").innerHTML = MODELS.map(m => modelCard(m)).join("");
+    $("#reverseGrid").innerHTML = MODELS.map(m => modelCard(m)).join("");
+    $("#compareGrid").innerHTML = MODELS.map(m => {
+      const checked = compareSel.has(m.id) ? " checked" : "";
+      return `
+        <label class="model-card" style="cursor:pointer; display:block;">
+          <input type="checkbox" data-compare="${m.id}" ${checked} style="position:absolute; opacity:0; width:0; height:0;" />
+          <div class="mc-head">
+            <div>
+              <div class="mc-name">${esc(m.name)}</div>
+              <div class="mc-provider">${esc(m.provider)}</div>
+            </div>
+            <span class="mc-tier ${m.tier === "S" ? "s" : ""}">${m.tier === "S" ? "S · 旗舰" : "A · 主力"}</span>
+          </div>
+          <p class="mc-positioning">${esc(m.positioning)}</p>
+          <div class="mc-kw">${m.tags.map(t => `<span class="tag accent">${esc(t)}</span>`).join("")}</div>
+          <div class="mc-radar">${radarSVG(m)}</div>
+        </label>`;
+    }).join("");
+  }
+
+  /* ═══════════════ 项目选择器 ═══════════════ */
+  const TYPE_LABELS = [
+    ["web", "Web"], ["ios", "iOS"], ["macos", "macOS"], ["backend", "Backend"],
+    ["fullstack", "Full Stack"], ["saas", "SaaS"], ["cli", "CLI"], ["systems", "Rust/C++/系统"],
+    ["agent", "AI Agent"], ["data", "数据处理"], ["crawler", "爬虫"], ["enterprise", "企业软件"],
+    ["browser", "Browser / Computer Use"], ["visual", "截图 → UI"]
+  ];
+  const SCALE_LABELS = [["small", "小型 <1万行"], ["mid", "中型 1–10万行"], ["large", "大型 10–50万行"], ["xlarge", "超大型 >50万行"]];
+  const PREF_LABELS = [["quality", "质量"], ["speed", "速度"], ["cost", "成本"], ["context", "上下文长度"], ["agent", "Agent 自主性"], ["chinese", "中文能力"]];
+  const LANG_LABELS = [["en", "以英文为主"], ["zh", "以中文为主"], ["mixed", "中英混合"]];
+  const TASK_LABELS = [
+    ["dev", "从 0 开发"], ["debug", "Debug"], ["refactor", "重构"], ["review", "代码审查"],
+    ["bulk", "批量修改"], ["arch", "架构设计"], ["feature", "功能新增"], ["automation", "自动化"],
+    ["screenshot", "截图还原"], ["browser", "Browser 自动化"]
+  ];
+  const PROJECT_ALIAS = {
+    web: ["nextjs", "react-dash", "nodejs"], ios: ["ios"], macos: ["macos", "swiftui"],
+    backend: ["python", "nodejs", "java", "data-script"], fullstack: ["nextjs", "saas-mvp", "nodejs"],
+    saas: ["saas-mvp", "saas-large"], cli: ["cli"], systems: ["rust", "cpp"],
+    agent: ["agent"], data: ["data-script", "crawler"], crawler: ["crawler"],
+    enterprise: ["java", "chinese-biz", "saas-large", "security"],
+    browser: ["browser-automation"], visual: ["ui-clone"]
+  };
+  const TASK_PROJECT_ALIAS = {
+    dev: ["saas-mvp", "nextjs", "ios", "macos", "cli"], debug: ["debug-hard"],
+    refactor: ["legacy-refactor", "bulk-refactor"], review: ["legacy-refactor"],
+    bulk: ["bulk-refactor", "big-repo"], arch: ["saas-large", "agent"],
+    feature: ["saas-mvp", "ios"], automation: ["crawler", "data-script", "devops"],
+    screenshot: ["ui-clone"], browser: ["browser-automation"]
+  };
+
+  const sel = { type: null, scale: "mid", task: null, pref: "quality", lang: "mixed", agent: false };
+
+  function renderChips(container, labels, group, current, onPick) {
+    container.innerHTML = labels.map(([v, l]) =>
+      `<button type="button" class="chip" data-v="${v}" aria-pressed="${current === v}">${l}</button>`
+    ).join("");
+    container.querySelectorAll(".chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (group === "pref") { sel.pref = btn.dataset.v; }
+        container.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+        onPick && onPick();
+      });
+    });
+  }
+  function renderSeg(container, labels, group, current) {
+    container.innerHTML = labels.map(([v, l]) =>
+      `<button type="button" data-v="${v}" aria-pressed="${current === v}">${l}</button>`
+    ).join("");
+    container.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (group === "scale") sel.scale = btn.dataset.v;
+        if (group === "agent") sel.agent = btn.dataset.v === "yes";
+        if (group === "lang") sel.lang = btn.dataset.v;
+        container.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+      });
+    });
+  }
+
+  function initSelector() {
+    renderChips($("#typeChips"), TYPE_LABELS, "type", sel.type, () => { sel.type = document.querySelector("#typeChips .chip[aria-pressed='true']").dataset.v; });
+    renderSeg($("#scaleSeg"), SCALE_LABELS, "scale", sel.scale);
+    renderChips($("#taskChips"), TASK_LABELS, "task", sel.task, () => { sel.task = document.querySelector("#taskChips .chip[aria-pressed='true']").dataset.v; });
+    renderChips($("#prefChips"), PREF_LABELS, "pref", sel.pref);
+    renderSeg($("#langSeg"), [["en", "以英文为主"], ["zh", "以中文为主"], ["mixed", "中英混合"]], "lang", sel.lang);
+    renderSeg($("#agentSeg"), [["no", "否"], ["yes", "是"]], "agent", sel.agent ? "yes" : "no");
+
+    $("#typeChips").addEventListener("click", (e) => {
+      const b = e.target.closest(".chip"); if (b) sel.type = b.dataset.v;
+    });
+    $("#taskChips").addEventListener("click", (e) => {
+      const b = e.target.closest(".chip"); if (b) sel.task = b.dataset.v;
+    });
+
+    $("#selectorForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!sel.type || !sel.task) {
+        $("#formStatus").textContent = "请先选择项目类型与任务类型";
+        $("#formStatus").setAttribute("role", "alert");
+        return;
+      }
+      $("#formStatus").textContent = "已生成推荐";
+      $("#formStatus").removeAttribute("role");
+      runRecommend();
+    });
+  }
+
+  function weightedRecommend() {
+    const projAliases = PROJECT_ALIAS[sel.type] || [];
+    const taskAliases = TASK_PROJECT_ALIAS[sel.task] || [];
+    const prefs = PREF_WEIGHTS[sel.pref] || BASE_WEIGHTS;
+    const contextBoost = { small: 0.6, mid: 1.0, large: 1.4, xlarge: 1.8 }[sel.scale] || 1;
+    const agentBoost = sel.agent ? 1.35 : 1.0;
+
+    const scores = MODELS.map(m => {
+      let projectMatch = 40, taskMatch = 40;
+      let projectReason = "";
+      projAliases.forEach(pid => {
+        const p = PROJECTS.find(x => x.id === pid);
+        if (p && p.recs[m.id]) {
+          const lv = LEVEL_SCORE[p.recs[m.id]];
+          if (lv > projectMatch) { projectMatch = lv; projectReason = p.reason; }
+        }
+      });
+      taskAliases.forEach(pid => {
+        const p = PROJECTS.find(x => x.id === pid);
+        if (p && p.recs[m.id]) {
+          const lv = LEVEL_SCORE[p.recs[m.id]];
+          if (lv > taskMatch) taskMatch = lv;
+        }
+      });
+      const specialtyKey = SPECIALTY_MAP[projAliases[0]] || "reasoning";
+      const specialtyScore = specialtyKey === "coding"
+        ? (m.caps.reasoning + m.caps.speed) / 2 * 20
+        : m.caps[specialtyKey] * 20;
+
+      let total =
+        projectMatch * prefs.project +
+        taskMatch * prefs.task +
+        m.caps.context * 20 * prefs.context * contextBoost +
+        m.caps.agent * 20 * prefs.agent * agentBoost +
+        ((m.caps.reasoning + m.caps.speed) / 2 * 20) * prefs.coding +
+        specialtyScore * prefs.specialty +
+        m.caps.cost * 20 * prefs.cost;
+      // 语言因子：以中文为主的项目额外叠加中文能力评分（约 15% 权重）
+      if (sel.lang === "zh") total += m.caps.chinese * 20 * 0.15;
+      if (prefs.speedBonus) total += m.caps.speed * 20 * 0.15;
+
+      // 项目表明确"C 不优先"的模型直接降权
+      let avoidFlag = false;
+      projAliases.forEach(pid => {
+        const p = PROJECTS.find(x => x.id === pid);
+        if (p && p.recs[m.id] === "C") avoidFlag = true;
+      });
+      if (avoidFlag) total *= 0.55;
+
+      return { m, total, projectReason };
+    }).sort((a, b) => b.total - a.total);
+
+    const top = scores.slice(0, 3);
+    const avoidList = scores.filter(s => !top.includes(s)).sort((a, b) => a.total - b.total).slice(0, 2);
+    return { top, avoidList };
+  }
+
+  function runRecommend() {
+    $("#resultEmpty").hidden = true;
+    $("#resultShell").hidden = true;
+    $("#resultLoading").hidden = false;
+    const selSummary = `类型：${TYPE_LABELS.find(x => x[0] === sel.type)[1]} · 规模：${SCALE_LABELS.find(x => x[0] === sel.scale)[1]} · 任务：${TASK_LABELS.find(x => x[0] === sel.task)[1]} · 偏好：${PREF_LABELS.find(x => x[0] === sel.pref)[1]} · 语言：${LANG_LABELS.find(x => x[0] === sel.lang)[1]}`;
+
+    setTimeout(() => {
+      const { top, avoidList } = weightedRecommend();
+      $("#resultLoading").hidden = true;
+      $("#resultShell").hidden = false;
+      $("#resultMeta").textContent = selSummary;
+      const medals = ["第一推荐", "第二推荐", "第三推荐"];
+      $("#rankList").innerHTML = top.map((r, i) => {
+        const m = r.m;
+        const p = PROJECTS.find(x => x.id === (PROJECT_ALIAS[sel.type] || [])[0]);
+        const why = (i === 0 && r.projectReason) ? r.projectReason : m.notes.split("。")[0] + "。";
+        return `
+          <div class="rank-item ${i === 0 ? "top" : ""}">
+            <span class="rank-badge">${i + 1}</span>
+            <div class="rank-body">
+              <div class="rn">${esc(m.name)} <span class="score">${medals[i]} · 匹配分 ${Math.round(r.total)}</span></div>
+              <p class="why">${esc(why)}</p>
+              <div class="tags">${m.tags.slice(0, 3).map(t => `<span class="tag accent">${esc(t)}</span>`).join("")}</div>
+            </div>
+          </div>`;
+      }).join("");
+      $("#resultAvoid").innerHTML = `
+        <div class="av-title">不优先（存在明显更优选项）</div>
+        <div class="avoid-chips">${avoidList.map(r => `<span class="avoid-chip">${esc(r.m.name)}</span>`).join("")}</div>`;
+      $("#resultNote").textContent = "推荐基于加权评分：项目类型匹配 × 25% + 任务类型 × 20% + 规模/上下文 × 15% + Agent × 15% + 代码 × 10% + 专项 × 10% + 成本 × 5%，并按你的偏好动态调整权重；以中文为主的项目会额外叠加中文能力评分（约 15%）。项目适配度是综合判断，不是官方排名。";
+    }, 350);
+  }
+
+  /* ═══════════════ 任务速选 ═══════════════ */
+  function initTasks() {
+    $("#taskGrid").innerHTML = TASKS.map((t, i) =>
+      `<button type="button" class="task-btn" data-task="${t.id}">${esc(t.name)}<span class="kbd">${String(i + 1).padStart(2, "0")}</span></button>`
+    ).join("");
+    $("#taskGrid").addEventListener("click", (e) => {
+      const btn = e.target.closest(".task-btn"); if (!btn) return;
+      const t = TASKS.find(x => x.id === btn.dataset.task);
+      const f = byId(t.first), s = byId(t.second);
+      const th = t.third ? byId(t.third) : null;
+      $("#taskResult").hidden = false;
+      $("#taskResultTitle").textContent = `「${t.name}」的推荐`;
+      $("#taskRankList").innerHTML = `
+        <div class="rank-item top">
+          <span class="rank-badge">1</span>
+          <div class="rank-body">
+            <div class="rn">${esc(f.name)} <span class="score">首选</span></div>
+            <p class="why">${esc(t.reason)}</p>
+            <div class="tags">${f.tags.slice(0, 3).map(x => `<span class="tag accent">${esc(x)}</span>`).join("")}</div>
+          </div>
+        </div>
+        <div class="rank-item">
+          <span class="rank-badge">2</span>
+          <div class="rank-body">
+            <div class="rn">${esc(s.name)} <span class="score">次选</span></div>
+            <p class="why">${esc(s.positioning)}</p>
+          </div>
+        </div>
+        ${th ? `<div class="rank-item">
+          <span class="rank-badge">3</span>
+          <div class="rank-body">
+            <div class="rn">${esc(th.name)} <span class="score">第三推荐</span></div>
+            <p class="why">${esc(th.positioning)}</p>
+          </div>
+        </div>` : ""}`;
+    });
+  }
+
+  /* ═══════════════ 详情弹窗 ═══════════════ */
+  function openModal(m) {
+    const opener = document.activeElement;
+    window.__modalOpener = opener;
+    $("#modalTitle").textContent = m.name;
+    $("#modalSub").textContent = `${m.provider} · ${m.tier === "S" ? "旗舰档" : "主力档"} · 数据更新 2026-08-27`;
+    const capRows = CAP_KEYS.map(([k, label]) =>
+      `<div class="cap-row"><span>${label}</span><div class="bar"><span style="width:${m.caps[k] * 20}%"></span></div><span class="n">${m.caps[k]}/5</span></div>`
+    ).join("");
+    const benchRows = m.benchmarks.length
+      ? m.benchmarks.map(b => `<tr><td>${esc(b.label)}</td><td class="num">${esc(b.value)}</td><td>${esc(b.src)}</td></tr>`).join("")
+      : `<tr><td colspan="3" style="color:var(--fg-4);">本轮未收录公开 Benchmark 数据</td></tr>`;
+    const price = m.priceIn ? `$${m.priceIn} / 1M tokens（输入）<br/>$${m.priceOut} / 1M tokens（输出）` : "未收录（官方价格页未纳入本轮统计）";
+    $("#modalBody").innerHTML = `
+      <div class="two-col">
+        <div>
+          <div class="section-label">能力画像</div>
+          <div class="cap-grid">${capRows}</div>
+        </div>
+        <div style="display:grid; gap:18px;">
+          <div>
+            <div class="section-label">规格</div>
+            <table class="spec-table">
+              <tr><td>定位</td><td>${esc(m.positioning)}</td></tr>
+              <tr><td>Context</td><td>${esc(m.context)}</td></tr>
+              <tr><td>API 价格</td><td>${price}</td></tr>
+              <tr><td>关键词</td><td>${m.tags.map(t => `<span class="tag accent" style="margin-right:4px;">${esc(t)}</span>`).join("")}</td></tr>
+            </table>
+          </div>
+          <div>
+            <div class="section-label">Benchmark 摘录</div>
+            <table class="bench-table">
+              <thead><tr><th>Benchmark</th><th>分数</th><th>来源</th></tr></thead>
+              <tbody>${benchRows}</tbody>
+            </table>
+            <p style="font-size: 11.5px; color: var(--fg-4); margin-top: 6px;">不同来源的 harness / 评测条件不同，不可直接横向比较。</p>
+          </div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="mc-list good"><div class="section-label">最适合</div><ul>${m.best.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+        <div class="mc-list bad"><div class="section-label">不优先</div><ul>${m.avoid.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+      </div>
+      <div>
+        <div class="section-label">选型注记</div>
+        <p style="font-size: 13.5px; color: var(--fg-2); line-height: 1.7;">${esc(m.notes)}</p>
+      </div>`;
+    $("#modalBackdrop").classList.add("open");
+    document.body.style.overflow = "hidden";
+    $("#modalClose").focus();
+  }
+  function closeModal() {
+    $("#modalBackdrop").classList.remove("open");
+    document.body.style.overflow = "";
+    if (window.__modalOpener && window.__modalOpener.focus) window.__modalOpener.focus();
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-detail]");
+    if (btn) {
+      const m = byId(btn.dataset.detail);
+      if (!m) return;
+      if (btn.classList.contains("mc-detail-btn")) {
+        const card = btn.closest(".model-card");
+        const det = card.querySelector(".mc-detail");
+        if (det) {
+          det.classList.toggle("open");
+          btn.setAttribute("aria-expanded", det.classList.contains("open") ? "true" : "false");
+          return;
+        }
+      }
+      openModal(m);
+      return;
+    }
+    if (e.target.closest("#modalClose") || e.target.id === "modalBackdrop") closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && $("#modalBackdrop").classList.contains("open")) closeModal();
+  });
+
+  /* ═══════════════ 反向查询过滤 ═══════════════ */
+  function initFilter() {
+    $("#filterInput").addEventListener("input", (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      let visible = 0;
+      $("#reverseGrid").querySelectorAll(".model-card").forEach((card, i) => {
+        const m = MODELS[i];
+        const hay = (m.name + m.positioning + m.tags.join(" ") + m.best.join(" ") + m.avoid.join(" ")).toLowerCase();
+        const show = !q || hay.includes(q);
+        card.style.display = show ? "" : "none";
+        if (show) visible++;
+      });
+      $("#reverseEmpty").hidden = visible !== 0;
+    });
+  }
+
+  /* ═══════════════ 对比 ═══════════════ */
+  const compareSel = new Set();
+  const MAX_COMPARE = 4;
+
+  function renderComparePicks() {
+    const picks = [...compareSel].map(id => byId(id)).filter(Boolean);
+    $("#comparePicks").innerHTML = picks.length
+      ? picks.map(m => `
+          <span class="pick-chip">${esc(m.name)}
+            <button type="button" data-remove="${m.id}" aria-label="移除 ${esc(m.name)}">×</button>
+          </span>`).join("")
+      : `<span style="font-size: 13px; color: var(--fg-4);">尚未选择模型</span>`;
+    $("#compareCount").textContent = `已选 ${picks.length} / 4`;
+    $("#compareGrid").querySelectorAll("input[data-compare]").forEach(inp => {
+      inp.checked = compareSel.has(inp.dataset.compare);
+    });
+    renderCompareTable(picks);
+  }
+
+  function renderCompareTable(picks) {
+    const wrap = $("#compareWrap"), empty = $("#compareEmpty");
+    if (picks.length < 2) {
+      wrap.hidden = true; empty.hidden = false;
+      empty.innerHTML = picks.length === 1
+        ? `<p style="margin-bottom: 14px;"><b>再选 1 个模型即可对比</b></p><p style="font-size: 13.5px; color: var(--fg-4);">建议对比 2–4 个模型，维度太多反而难决策。</p>`
+        : `<p style="margin-bottom: 14px;"><b>尚未选择模型</b></p><p style="font-size: 13.5px; color: var(--fg-4);">在下方模型中勾选 2–4 个后，对比表会出现在这里。</p>`;
+      return;
+    }
+    wrap.hidden = false; empty.hidden = true;
+    const head = `<tr><th>维度</th>${picks.map(m => `<th>${esc(m.name)}</th>`).join("")}</tr>`;
+    const capRows = CAP_KEYS.map(([k, label]) => {
+      const max = Math.max(...picks.map(m => m.caps[k]));
+      return `<tr><td>${label}</td>${picks.map(m =>
+        `<td><div class="cap-bar">${barRow("", m.caps[k], 5, "", "")}<span style="font-size:11.5px; color:var(--fg-3);">${m.caps[k]}/5${m.caps[k] === max ? " · 领先" : ""}</span></div></td>`
+      ).join("")}</tr>`;
+    }).join("");
+    const row = (label, fn) => `<tr><td>${label}</td>${picks.map(m => `<td>${fn(m)}</td>`).join("")}</tr>`;
+    $("#compareTable").innerHTML = `
+      <thead>${head}</thead>
+      <tbody>
+        ${row("定位", m => esc(m.positioning))}
+        ${capRows}
+        ${row("Context", m => esc(m.context))}
+        ${row("API 价格", m => m.priceIn ? `$${m.priceIn} / $${m.priceOut} / 1M tok` : "未收录")}
+        ${row("最适合 Top 3", m => m.best.slice(0, 3).map(x => `<span class="tag" style="margin:2px 3px 2px 0;">${esc(x)}</span>`).join(""))}
+        ${row("不优先 Top 3", m => m.avoid.slice(0, 3).map(x => `<span class="tag" style="margin:2px 3px 2px 0;">${esc(x)}</span>`).join(""))}
+      </tbody>`;
+  }
+
+  function initCompare() {
+    $("#compareGrid").addEventListener("change", (e) => {
+      const inp = e.target.closest("input[data-compare]");
+      if (!inp) return;
+      const id = inp.dataset.compare;
+      if (inp.checked) {
+        if (compareSel.size >= MAX_COMPARE) {
+          inp.checked = false;
+          const status = $("#compareCount");
+          status.textContent = "最多对比 4 个模型";
+          setTimeout(() => { status.textContent = `已选 ${compareSel.size} / 4`; }, 1600);
+          return;
+        }
+        compareSel.add(id);
+      } else {
+        compareSel.delete(id);
+      }
+      renderComparePicks();
+    });
+    $("#comparePicks").addEventListener("click", (e) => {
+      const rm = e.target.closest("[data-remove]");
+      if (rm) { compareSel.delete(rm.dataset.remove); renderComparePicks(); }
+    });
+  }
+
+  /* ═══════════════ 热力图 ═══════════════ */
+  function renderHeatmap() {
+    $("#heatHead").innerHTML = `<th>项目类型</th>${MODELS.map(m => `<th>${esc(m.name)}</th>`).join("")}`;
+    $("#heatBody").innerHTML = PROJECTS.map(p => {
+      const cells = MODELS.map(m => {
+        const lv = p.recs[m.id];
+        if (!lv) return `<td><span class="lv na">—</span></td>`;
+        const label = lv === "S" ? "S" : lv === "A" ? "A" : lv === "B" ? "B" : "C";
+        return `<td><span class="lv ${lv.toLowerCase()}" title="${esc(m.name)}：${label}">${label}</span></td>`;
+      }).join("");
+      return `<tr><td>${esc(p.name)}</td>${cells}</tr>`;
+    }).join("");
+  }
+
+  /* ═══════════════ 成本条形图 ═══════════════ */
+  function renderCost() {
+    const priced = MODELS.filter(m => m.priceIn != null);
+    const maxIn = Math.max(...priced.map(m => m.priceIn));
+    const maxOut = Math.max(...priced.map(m => m.priceOut));
+    $("#costBars").innerHTML = priced.map(m => `
+      <div class="cost-bar-row">
+        <span class="m">${esc(m.name)}</span>
+        <div class="cost-pair">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="cost-label" style="min-width:34px;">输入</div>
+            <div class="bar in" style="flex:1;"><span style="width:${Math.round(m.priceIn / maxIn * 100)}%"></span></div>
+            <span class="v">$${m.priceIn}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="cost-label" style="min-width:34px;">输出</div>
+            <div class="bar out" style="flex:1;"><span style="width:${Math.round(m.priceOut / maxOut * 100)}%"></span></div>
+            <span class="v">$${m.priceOut}</span>
+          </div>
+        </div>
+      </div>`).join("");
+  }
+
+  /* ═══════════════ Benchmark 表 ═══════════════ */
+  function renderBench() {
+    const rows = [];
+    MODELS.forEach(m => m.benchmarks.forEach(b => {
+      rows.push([m.name, b.label, b.value, b.src]);
+    }));
+    $("#benchTable tbody").innerHTML = rows.map(r =>
+      `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="num">${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`
+    ).join("");
+  }
+
+  /* ═══════════════ 主题切换 ═══════════════ */
+  function initTheme() {
+    const saved = localStorage.getItem("ai-selector-theme");
+    if (saved) document.documentElement.dataset.theme = saved;
+    syncThemeIcon();
+    $("#themeToggle").addEventListener("click", () => {
+      const cur = document.documentElement.dataset.theme;
+      const next = cur === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem("ai-selector-theme", next);
+      syncThemeIcon();
+    });
+  }
+  function syncThemeIcon() {
+    const dark = document.documentElement.dataset.theme === "dark";
+    $("#iconMoon").style.display = dark ? "" : "none";
+    $("#iconSun").style.display = dark ? "none" : "";
+  }
+
+  /* ═══════════════ init ═══════════════ */
+  document.addEventListener("DOMContentLoaded", () => {
+    initSelector();
+    initTasks();
+    renderModelGrids();
+    initFilter();
+    initCompare();
+    renderComparePicks();
+    renderHeatmap();
+    renderCost();
+    renderBench();
+    initTheme();
+  });
+  </script>
+</body>
+</html>
