@@ -48,7 +48,7 @@
       --warn: #f5a524;
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
       --font-mono: ui-monospace, 'SF Mono', 'Berkeley Mono', Menlo, monospace;
-      --fs-hero: clamp(38px, 5.2vw, 64px);
+      --fs-hero: clamp(30px, 3.6vw, 46px);
       --fs-h2: clamp(26px, 3.2vw, 40px);
       --fs-h3: 20px;
       --fs-body: 15px;
@@ -56,7 +56,7 @@
       --fs-xs: 11px;
       --radius: 8px;
       --radius-lg: 12px;
-      --container: 1200px;
+      --container: 1120px;
       --gap-sm: 8px;
       --gap-md: 16px;
       --gap-lg: 24px;
@@ -98,7 +98,7 @@
     h1, h2, h3, h4 { text-wrap: balance; margin: 0; }
     p { text-wrap: pretty; margin: 0; }
 
-    .container { max-width: var(--container); margin-inline: auto; padding-inline: 28px; }
+    .container { max-width: var(--container); margin-inline: auto; padding-inline: clamp(24px, 6vw, 72px); }
     .section { padding-block: clamp(56px, 8vw, var(--gap-2xl)); }
     .section + .section { border-top: 1px solid var(--border-subtle); }
 
@@ -133,7 +133,7 @@
     .icon-btn svg { width: 17px; height: 17px; }
 
     /* ═══ hero ═══ */
-    .hero { padding-block: clamp(72px, 11vw, 148px) clamp(56px, 9vw, 120px); position: relative; overflow: hidden; }
+    .hero { padding-block: clamp(44px, 6vw, 80px) clamp(32px, 4.5vw, 56px); position: relative; overflow: hidden; }
     .hero::before {
       content: ""; position: absolute; inset: 0; pointer-events: none;
       background:
@@ -169,7 +169,7 @@
     [data-theme="light"] .btn-secondary:hover { background: var(--surface-2); }
     .btn-ghost { background: transparent; color: var(--fg-2); border-color: transparent; }
     .btn-ghost:hover { color: var(--fg); }
-    .hero-strip { display: flex; gap: var(--gap-md); flex-wrap: wrap; margin-top: var(--gap-xl); }
+    .hero-strip { display: flex; gap: var(--gap-md); flex-wrap: wrap; margin-top: var(--gap-lg); }
     .strip-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-3); }
     .strip-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }
     .strip-item .dot.amber { background: var(--warn); }
@@ -500,11 +500,11 @@
 
   <main id="content">
     <!-- ═══ Hero ═══ -->
-    <section class="section hero" data-od-id="hero" style="padding-bottom: clamp(48px, 7vw, 88px);">
+    <section class="section hero" data-od-id="hero" style="padding-bottom: clamp(32px, 4.5vw, 56px);">
       <div class="container hero-inner">
         <p class="eyebrow">AI Coding Model Selector · 2026-08</p>
-        <h1>哪个 AI 最适合<br/>你的项目？<span class="grad">不是谁最强，而是谁最合适。</span></h1>
-        <p class="lead">选型不是排行榜。输入你的项目类型、规模与任务，10 秒内得到三档推荐 + 明确的"不优先"清单，每个结论都附原因与关键能力依据。</p>
+        <h1>哪个 AI 最适合你的项目？<span class="grad">只看谁最合适。</span></h1>
+        <p class="lead">输入项目类型、规模与任务，10 秒内得到三档推荐 + 明确的"不优先"清单，每个结论都附原因。</p>
         <div class="hero-cta">
           <a class="btn btn-primary" href="#selector">开始选择模型</a>
           <a class="btn btn-secondary" href="#models">查看全部模型</a>
