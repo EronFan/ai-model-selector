@@ -17,6 +17,10 @@
     V3 (2026-08-27): 选择器新增「项目主要语言」（中文/英文/混合）因子（中文 +15% 权重）；
           推荐区空态/加载态压缩；默认改为浅色模式。
     V4 (2026-08-27): Hero 压缩（单行标题、留白减半），页边距加宽（容器 1120px、动态 clamp 边距）。
+    V8 (2026-08-27): 筛选去重——平台负责技术环境，项目类型只留产品形态
+          （SaaS/Web 产品、数据处理/ETL、爬虫采集、企业软件、Browser 自动化、截图→UI）；
+           新增 PLATFORM_PROJECT_ALIAS：选定平台隐式携带对应场景权重；
+           平台或类型二选一即可生成推荐；开发平台行改为正常换行。
     V7 (2026-08-27): 删除 Hero 标题/副文案与两个 CTA 按钮（保留数据条）；
           移除模型卡与对比卡的能力雷达图及 radarSVG；浅色模式切换为「赤陶橙」色板
           （底 #FBF8F4 / 主色 #C2551F / 文字级主色 #A04312 / 淡底 #F9E9DC）。
@@ -206,7 +210,6 @@
     .field > label { font-size: 12.5px; font-weight: 510; color: var(--fg-2); letter-spacing: 0.01em; }
     .field .hint { font-size: 12px; color: var(--fg-4); }
     .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip-row.scroll-x { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
     .chip {
       padding: 7px 13px; border-radius: 999px; border: 1px solid var(--border);
       background: rgba(255,255,255,0.02); color: var(--fg-2); font-size: 13px; font-weight: 510;
@@ -542,7 +545,7 @@
           <form class="panel" id="selectorForm" novalidate>
             <div class="field">
               <label id="lbl-platform">开发平台</label>
-              <div class="chip-row scroll-x" role="group" aria-labelledby="lbl-platform" id="platformChips"></div>
+              <div class="chip-row" role="group" aria-labelledby="lbl-platform" id="platformChips"></div>
             </div>
             <div class="field">
               <label id="lbl-type">项目类型</label>
@@ -570,7 +573,7 @@
             </div>
             <button class="btn btn-primary selector-submit" type="submit">生成推荐</button>
             <div class="selector-meta">
-              <span id="formStatus" role="status">请至少选择项目类型与任务类型</span>
+              <span id="formStatus" role="status">请选择任务类型，并至少填写平台或项目类型其一</span>
               <span class="hint">加权评分：类型 25% · 任务 20% · 上下文 15% · Agent 15% · 代码 10% · 专项 10% · 成本 5%；选定平台后另叠平台适配分（30%）</span>
             </div>
           </form>
@@ -1154,10 +1157,8 @@
 
   /* ═══════════════ 项目选择器 ═══════════════ */
   const TYPE_LABELS = [
-    ["web", "Web"], ["ios", "iOS"], ["macos", "macOS"], ["backend", "Backend"],
-    ["fullstack", "Full Stack"], ["saas", "SaaS"], ["cli", "CLI"], ["systems", "Rust/C++/系统"],
-    ["agent", "AI Agent"], ["data", "数据处理"], ["crawler", "爬虫"], ["enterprise", "企业软件"],
-    ["browser", "Browser / Computer Use"], ["visual", "截图 → UI"]
+    ["saas", "SaaS / Web 产品"], ["data", "数据处理 / ETL"], ["crawler", "爬虫采集"],
+    ["enterprise", "企业软件"], ["browser", "Browser 自动化"], ["visual", "截图 → UI"]
   ];
   const SCALE_LABELS = [["small", "小型 <1万行"], ["mid", "中型 1–10万行"], ["large", "大型 10–50万行"], ["xlarge", "超大型 >50万行"]];
   const PREF_LABELS = [["quality", "质量"], ["speed", "速度"], ["cost", "成本"], ["context", "上下文长度"], ["agent", "Agent 自主性"], ["chinese", "中文能力"]];
@@ -1172,11 +1173,15 @@
     ["bulk", "批量修改"], ["arch", "架构设计"], ["feature", "功能新增"], ["automation", "自动化"],
     ["screenshot", "截图还原"], ["browser", "Browser 自动化"]
   ];
+  // 平台隐式携带的项目场景（平台负责技术环境，项目类型只留产品形态，去重不失精度）
+  const PLATFORM_PROJECT_ALIAS = {
+    ios: ["ios"], macos: ["macos", "swiftui"], android: [], web: ["nextjs", "react-dash", "nodejs"],
+    backend: ["python", "nodejs", "java", "data-script"], desktop: ["macos", "swiftui"],
+    crossplatform: [], agent: ["agent", "browser-automation"], clisystem: ["cli", "rust", "cpp"],
+    fullstack: ["nextjs", "saas-mvp", "nodejs"]
+  };
   const PROJECT_ALIAS = {
-    web: ["nextjs", "react-dash", "nodejs"], ios: ["ios"], macos: ["macos", "swiftui"],
-    backend: ["python", "nodejs", "java", "data-script"], fullstack: ["nextjs", "saas-mvp", "nodejs"],
-    saas: ["saas-mvp", "saas-large"], cli: ["cli"], systems: ["rust", "cpp"],
-    agent: ["agent"], data: ["data-script", "crawler"], crawler: ["crawler"],
+    saas: ["saas-mvp", "saas-large", "nextjs"], data: ["data-script", "crawler"], crawler: ["crawler"],
     enterprise: ["java", "chinese-biz", "saas-large", "security"],
     browser: ["browser-automation"], visual: ["ui-clone"]
   };
@@ -1237,8 +1242,8 @@
 
     $("#selectorForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      if (!sel.type || !sel.task) {
-        $("#formStatus").textContent = "请先选择项目类型与任务类型";
+      if (!sel.task || (sel.platform === "all" && !sel.type)) {
+        $("#formStatus").textContent = sel.task ? "请先选择开发平台或项目类型（二者选一即可）" : "请先选择任务类型，并填写平台或项目类型其一";
         $("#formStatus").setAttribute("role", "alert");
         return;
       }
@@ -1249,7 +1254,9 @@
   }
 
   function weightedRecommend() {
-    const projAliases = PROJECT_ALIAS[sel.type] || [];
+    const typeAliases = PROJECT_ALIAS[sel.type] || [];
+    const platAliases = sel.platform !== "all" ? (PLATFORM_PROJECT_ALIAS[sel.platform] || []) : [];
+    const projAliases = [...new Set([...platAliases, ...typeAliases])];
     const taskAliases = TASK_PROJECT_ALIAS[sel.task] || [];
     const prefs = PREF_WEIGHTS[sel.pref] || BASE_WEIGHTS;
     const contextBoost = { small: 0.6, mid: 1.0, large: 1.4, xlarge: 1.8 }[sel.scale] || 1;
@@ -1272,7 +1279,8 @@
           if (lv > taskMatch) taskMatch = lv;
         }
       });
-      const specialtyKey = SPECIALTY_MAP[projAliases[0]] || "reasoning";
+      const hitAlias = projAliases.find(a => SPECIALTY_MAP[a]);
+      const specialtyKey = hitAlias ? SPECIALTY_MAP[hitAlias] : "reasoning";
       const specialtyScore = specialtyKey === "coding"
         ? (m.caps.reasoning + m.caps.speed) / 2 * 20
         : m.caps[specialtyKey] * 20;
@@ -1312,7 +1320,7 @@
     $("#resultEmpty").hidden = true;
     $("#resultShell").hidden = true;
     $("#resultLoading").hidden = false;
-    const selSummary = `类型：${TYPE_LABELS.find(x => x[0] === sel.type)[1]} · 规模：${SCALE_LABELS.find(x => x[0] === sel.scale)[1]} · 任务：${TASK_LABELS.find(x => x[0] === sel.task)[1]} · 偏好：${PREF_LABELS.find(x => x[0] === sel.pref)[1]} · 语言：${LANG_LABELS.find(x => x[0] === sel.lang)[1]}`;
+    const selSummary = `平台：${PLATFORM_LABELS.find(x => x[0] === sel.platform)[1]} · 类型：${sel.type ? TYPE_LABELS.find(x => x[0] === sel.type)[1] : "未选"} · 规模：${SCALE_LABELS.find(x => x[0] === sel.scale)[1]} · 任务：${TASK_LABELS.find(x => x[0] === sel.task)[1]} · 偏好：${PREF_LABELS.find(x => x[0] === sel.pref)[1]} · 语言：${LANG_LABELS.find(x => x[0] === sel.lang)[1]}`;
 
     setTimeout(() => {
       const { top, avoidList } = weightedRecommend();
@@ -1323,7 +1331,6 @@
       const platformName = PLATFORM_LABELS.find(x => x[0] === sel.platform)[1];
       $("#rankList").innerHTML = top.map((r, i) => {
         const m = r.m;
-        const p = PROJECTS.find(x => x.id === (PROJECT_ALIAS[sel.type] || [])[0]);
         let why = (i === 0 && r.projectReason) ? r.projectReason : m.notes.split("。")[0] + "。";
         if (sel.platform !== "all") {
           why = `${platformName} 平台适配 ${r.platformFit}/100——${(PLATFORM_REASONS[sel.platform] && PLATFORM_REASONS[sel.platform][m.id]) || "该平台场景下综合表现稳定"}。` + why;
