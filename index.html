@@ -204,6 +204,7 @@
     .field > label { font-size: 12.5px; font-weight: 510; color: var(--fg-2); letter-spacing: 0.01em; }
     .field .hint { font-size: 12px; color: var(--fg-4); }
     .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip-row.scroll-x { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
     .chip {
       padding: 7px 13px; border-radius: 999px; border: 1px solid var(--border);
       background: rgba(255,255,255,0.02); color: var(--fg-2); font-size: 13px; font-weight: 510;
@@ -269,6 +270,8 @@
       color: var(--fg-2); font-size: 12.5px; font-weight: 510;
     }
     .result-note { margin-top: var(--gap-md); font-size: 12.5px; color: var(--fg-4); line-height: 1.6; }
+    .rank-metrics { display: flex; gap: var(--gap-md); flex-wrap: wrap; margin-top: 8px; font-size: 11.5px; color: var(--fg-4); }
+    .rank-metrics b { font-family: var(--font-mono); font-weight: 590; color: var(--fg-2); margin-left: 3px; }
     .result-loading {
       border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--gap-xl);
       display: grid; place-items: center; min-height: 160px; text-align: center;
@@ -394,6 +397,10 @@
     [data-theme="light"] .lv.b { background: rgba(20,22,26,0.04); }
     .lv.c { color: var(--fg-4); border: 1px dashed var(--border); }
     .lv.na { color: var(--fg-4); opacity: 0.4; }
+    .lv.hi { background: color-mix(in oklch, var(--success) 24%, transparent); color: var(--emerald); border: 1px solid color-mix(in oklch, var(--success) 40%, transparent); }
+    .lv.mid { background: color-mix(in oklch, var(--accent) 18%, transparent); color: var(--accent-bright); border: 1px solid color-mix(in oklch, var(--accent) 35%, transparent); }
+    .lv.lo { background: rgba(255,255,255,0.03); color: var(--fg-4); border: 1px solid var(--border); }
+    [data-theme="light"] .lv.lo { background: rgba(23,33,29,0.04); }
     .heat-legend { display: flex; gap: var(--gap-md); flex-wrap: wrap; margin-top: var(--gap-md); font-size: 12.5px; color: var(--fg-3); }
     .heat-legend .item { display: flex; align-items: center; gap: 7px; }
     .heat-note { margin-top: 12px; font-size: 12px; color: var(--fg-4); }
@@ -539,6 +546,10 @@
         <div class="selector-shell">
           <form class="panel" id="selectorForm" novalidate>
             <div class="field">
+              <label id="lbl-platform">开发平台</label>
+              <div class="chip-row scroll-x" role="group" aria-labelledby="lbl-platform" id="platformChips"></div>
+            </div>
+            <div class="field">
               <label id="lbl-type">项目类型</label>
               <div class="chip-row" role="group" aria-labelledby="lbl-type" id="typeChips"></div>
             </div>
@@ -565,7 +576,7 @@
             <button class="btn btn-primary selector-submit" type="submit">生成推荐</button>
             <div class="selector-meta">
               <span id="formStatus" role="status">请至少选择项目类型与任务类型</span>
-              <span class="hint">加权评分：类型 25% · 任务 20% · 上下文 15% · Agent 15% · 代码 10% · 专项 10% · 成本 5%；以中文为主另叠中文能力分</span>
+              <span class="hint">加权评分：类型 25% · 任务 20% · 上下文 15% · Agent 15% · 代码 10% · 专项 10% · 成本 5%；选定平台后另叠平台适配分（30%）</span>
             </div>
           </form>
 
@@ -693,6 +704,27 @@
         </div>
         <p class="heat-note">热力图等级来自"项目 → AI"推荐表；"不优先"仅表示该项目存在更明显的模型优势。</p>
       </div>
+
+      <!-- 平台适配热力图 -->
+      <div style="margin-top: var(--gap-2xl);">
+        <div class="sec-head">
+          <span class="sec-num">06.5 · Platform Fit</span>
+          <h2>平台适配热力图</h2>
+          <p>平台维度（iOS / Android / Web 等）的开发匹配度，用于选型权重（0–100）。颜色只表达高/中/低三档相对适配——<b>不是官方 Benchmark 分数</b>。</p>
+        </div>
+        <div class="heat-wrap">
+          <table class="heat-table">
+            <thead><tr id="pHeatHead"><th>平台</th></tr></thead>
+            <tbody id="pHeatBody"></tbody>
+          </table>
+        </div>
+        <div class="heat-legend">
+          <span class="item"><span class="lv hi">90+</span> 高适配</span>
+          <span class="item"><span class="lv mid">75–89</span> 中适配</span>
+          <span class="item"><span class="lv lo">&lt;75</span> 低适配</span>
+        </div>
+        <p class="heat-note">分数只影响产品内的推荐排序权重，不代表模型在该平台的实际性能排名；"低适配"表示存在明显更优选项，不表示不能使用。</p>
+      </div>
     </section>
 
     <!-- ═══ 成本与基准 ═══ -->
@@ -764,6 +796,7 @@
       id: "opus5", name: "Claude Opus 5", provider: "Anthropic", tier: "S",
       positioning: "顶级复杂工程模型——深度推理 / 大型 Repo / Agent，高难度项目专家",
       tags: ["深度推理", "大型工程", "架构", "重构"],
+      platformFit: { ios: 95, macos: 96, android: 94, web: 95, backend: 99, desktop: 96, crossplatform: 95, agent: 99, clisystem: 97, fullstack: 98 },
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 5, systems: 4, chinese: 4, speed: 3, cost: 2 },
       context: "未公布", priceIn: null, priceOut: null,
       best: ["大型后端", "复杂 SaaS", "大型 Repo", "老项目重构", "架构设计", "复杂数据库设计", "深度 Debug", "高难度 Agent"],
@@ -775,6 +808,7 @@
       id: "sol56", name: "GPT-5.6 Sol", provider: "OpenAI", tier: "S",
       positioning: "GPT-5.6 旗舰档——综合工程 / Terminal / Agent，高能力工程师",
       tags: ["工程执行", "Terminal", "综合能力", "Agent"],
+      platformFit: { ios: 98, macos: 98, android: 96, web: 96, backend: 99, desktop: 98, crossplatform: 97, agent: 99, clisystem: 99, fullstack: 99 },
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 5, systems: 4, chinese: 4, speed: 4, cost: 3 },
       context: "约 1M 级", priceIn: null, priceOut: null,
       best: ["复杂工程", "Terminal Agent", "DevOps", "iOS/macOS", "Git / CI/CD", "复杂自动化", "工程级 Debug"],
@@ -786,6 +820,7 @@
       id: "luna56", name: "GPT-5.6 Luna", provider: "OpenAI", tier: "A",
       positioning: "GPT-5.6 高性价比档——高并发 / 大量 Coding / 成本效率，廉价 GPT 主力",
       tags: ["高并发", "低成本", "高吞吐"],
+      platformFit: { ios: 94, macos: 94, android: 92, web: 97, backend: 97, desktop: 94, crossplatform: 95, agent: 94, clisystem: 96, fullstack: 97 },
       caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
       context: "约 1.05M", priceIn: 0.20, priceOut: 1.20,
       best: ["高频 Coding", "API / CRUD", "批量代码生成", "测试代码生成", "普通 Debug", "自动化脚本", "成本敏感型 Agent"],
@@ -797,6 +832,7 @@
       id: "grok46", name: "Grok 4.6", provider: "xAI", tier: "S",
       positioning: "新一代前沿 Agent 模型——推理 / 长任务 / Coding Agent，难 + 快",
       tags: ["难+快", "Agent", "Systems", "Debug"],
+      platformFit: { ios: 95, macos: 99, android: 94, web: 96, backend: 97, desktop: 99, crossplatform: 95, agent: 99, clisystem: 99, fullstack: 97 },
       caps: { reasoning: 5, agent: 5, repo: 4, context: 4, frontend: 4, iosMac: 5, systems: 5, chinese: 3, speed: 4, cost: 4 },
       context: "500K", priceIn: 2.0, priceOut: 6.0,
       best: ["复杂 Debug", "长时间 Agent", "Mac App", "Rust / C / C++", "系统工具", "大型重构", "高难度工程"],
@@ -808,6 +844,7 @@
       id: "grok45", name: "Grok 4.5", provider: "xAI", tier: "A",
       positioning: "高速 Coding 模型——快速开发 / Web / MVP / Systems，极速开发工程师",
       tags: ["极速 Coding", "Web", "MVP"],
+      platformFit: { ios: 90, macos: 92, android: 90, web: 99, backend: 94, desktop: 92, crossplatform: 93, agent: 94, clisystem: 96, fullstack: 96 },
       caps: { reasoning: 4, agent: 4, repo: 4, context: 4, frontend: 5, iosMac: 4, systems: 5, chinese: 3, speed: 5, cost: 4 },
       context: "未公布", priceIn: null, priceOut: null,
       best: ["Web MVP", "React / Next.js", "Dashboard", "Landing Page", "Node.js", "CLI", "快速原型", "快速 Rust/C++ 开发"],
@@ -819,6 +856,7 @@
       id: "muse12", name: "Muse Spark 1.2", provider: "Meta", tier: "A",
       positioning: "长上下文 Coding 模型——大 Repo / 长 Context / Agent，代码仓库专家",
       tags: ["大 Repo", "1M Context", "Agent"],
+      platformFit: { ios: 94, macos: 95, android: 93, web: 95, backend: 98, desktop: 96, crossplatform: 96, agent: 99, clisystem: 97, fullstack: 98 },
       caps: { reasoning: 4, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 3, speed: 4, cost: 5 },
       context: "约 1.05M", priceIn: 1.25, priceOut: 4.25,
       best: ["大型 Repo", "长上下文项目", "跨目录修改", "大批量重构", "Agent 长任务", "代码库迁移"],
@@ -830,6 +868,7 @@
       id: "dsv4pro", name: "DeepSeek V4 Pro", provider: "DeepSeek", tier: "A",
       positioning: "高性价比强模型——中高难度 Coding / 批量开发，低成本强力工程师",
       tags: ["性价比", "中高难度", "批量"],
+      platformFit: { ios: 90, macos: 90, android: 90, web: 94, backend: 96, desktop: 90, crossplatform: 92, agent: 96, clisystem: 94, fullstack: 96 },
       caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 4, cost: 5 },
       context: "未公布", priceIn: null, priceOut: null,
       best: ["中高难度 Coding", "Python / Node", "后端", "API", "批量 Coding", "成本敏感项目"],
@@ -841,6 +880,7 @@
       id: "dsv4flash", name: "DeepSeek V4 Flash", provider: "DeepSeek", tier: "A",
       positioning: "超高性价比 Agent 模型——高频 Coding / Agent / 1M Context，批量 Coding 主力",
       tags: ["超低成本", "1M Context", "高频 Agent"],
+      platformFit: { ios: 86, macos: 86, android: 86, web: 95, backend: 94, desktop: 86, crossplatform: 92, agent: 95, clisystem: 94, fullstack: 95 },
       caps: { reasoning: 4, agent: 5, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
       context: "1M", priceIn: null, priceOut: null,
       best: ["大量 Coding", "CRUD", "Python 脚本", "Node API", "爬虫", "数据处理", "批量修改", "高频 Agent", "长上下文普通工程"],
@@ -858,6 +898,7 @@
       id: "kimi3", name: "Kimi K3", provider: "Moonshot AI", tier: "A",
       positioning: "长上下文中文强模型——中文 / 长任务 / Coding Agent，中文项目专家",
       tags: ["中文", "长上下文", "Agent"],
+      platformFit: { ios: 88, macos: 88, android: 88, web: 93, backend: 94, desktop: 88, crossplatform: 92, agent: 95, clisystem: 90, fullstack: 94 },
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 4 },
       context: "长上下文", priceIn: null, priceOut: null,
       best: ["中文项目", "长上下文项目", "大型 Agent", "大型中文业务系统", "中文需求分析"],
@@ -874,6 +915,7 @@
       id: "glm52", name: "GLM-5.2", provider: "智谱 AI", tier: "A",
       positioning: "中文 Agent / 工程模型——中文 / Agent / 国内工程，国产 Agent 工程师",
       tags: ["中文", "国内业务", "Agent"],
+      platformFit: { ios: 87, macos: 87, android: 89, web: 92, backend: 94, desktop: 88, crossplatform: 92, agent: 96, clisystem: 91, fullstack: 94 },
       caps: { reasoning: 4, agent: 5, repo: 4, context: 4, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 5 },
       context: "未公布", priceIn: null, priceOut: null,
       best: ["中文业务系统", "国内 SaaS", "中文 Agent", "国内工程生态"],
@@ -885,6 +927,7 @@
       id: "glm53", name: "GLM-5.3 Flash", provider: "Z.ai / 智谱", tier: "A",
       positioning: "1M Context + 原生多模态 + 强 Agent Coding——以 Flash 级成本提供高性价比的长任务工程能力",
       tags: ["1M Context", "Agent Coding", "Native Multimodal", "Browser Use", "Computer Use"],
+      platformFit: { ios: 91, macos: 91, android: 90, web: 97, backend: 96, desktop: 91, crossplatform: 96, agent: 99, clisystem: 97, fullstack: 97 },
       caps: { reasoning: 4, agent: 5, repo: 5, context: 5, frontend: 5, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 5 },
       context: "1M", priceIn: 0.15, priceOut: 0.50,
       best: ["大型 Repo", "Long-Horizon Agent", "Web / SaaS", "UI 复刻", "Browser / Computer Use", "批量 Coding", "多文件重构"],
@@ -951,6 +994,87 @@
   ];
 
   const LEVEL_SCORE = { S: 100, A: 80, B: 60, C: 10 };
+  // 平台 × 模型 推荐理由（用于结果页动态解释，源自增量需求文档 §7）
+  const PLATFORM_REASONS = {
+    ios: {
+      sol56: "Swift / SwiftUI / AppKit、Terminal 与工程执行均衡，iOS 主力开发首选",
+      opus5: "复杂 Apple Framework、生命周期与并发约束理解深，适合难啃的模块",
+      grok46: "权限、系统 API 与疑难 Debug 场景优势明显",
+      muse12: "适合大型 iOS Repo 与跨模块批量修改",
+      luna56: "高频小改动与成本敏感的迭代任务合适",
+      glm53: "长上下文 + 多模态辅助 UI 工作，性价比高"
+    },
+    macos: {
+      sol56: "macOS 工程能力、Terminal 工作流、系统开发和复杂 Debug 均衡，适合主力开发",
+      grok46: "在系统工具、Rust/C/C++ 和复杂 Debug 场景中优势明显，适合作为疑难问题专家",
+      opus5: "深度理解历史代码与隐性依赖，适合重构与架构",
+      muse12: "适合大型 macOS Repo / 长 Context / 批量修改",
+      luna56: "大批量小改动与自动化脚本的好选择",
+      glm53: "1M Context + Agent 能力，适合长任务与跨模块修改"
+    },
+    android: {
+      sol56: "Kotlin / Jetpack Compose / Gradle 工程链路熟悉度高",
+      opus5: "多模块 Android 工程的架构与依赖治理能力强",
+      grok46: "NDK / 性能问题 / 疑难 Debug 适配好",
+      muse12: "大型 Android 仓库的长上下文分析",
+      glm53: "高性价比的 Compose 页面与批处理主力"
+    },
+    web: {
+      grok45: "React / Next.js / Tailwind 的 UI 生成速度和脚手架能力最强，Web MVP 首选",
+      grok46: "复杂前端状态与全栈联调能力强",
+      luna56: "高频页面迭代、组件生成的吞吐与成本平衡好",
+      sol56: "工程完整性要求高的 Web 项目首选之一",
+      glm53: "Screenshot-to-Code 与视觉闭环还原是差异化优势",
+      muse12: "大型 Web Monorepo 的长上下文分析"
+    },
+    backend: {
+      opus5: "服务端架构、数据库设计与模块边界把握最强档",
+      sol56: "API / 微服务 / CI-CD 工程执行全面",
+      grok46: "性能排查、底层问题定位优势明显",
+      muse12: "大型后端代码库与长任务分析",
+      dsv4pro: "常规后端 CRUD、API 与脚本的高性价比选择",
+      glm53: "长上下文微服务改造与批处理主力"
+    },
+    desktop: {
+      sol56: "Windows / Linux 桌面端工程链路与打包发布熟悉度高",
+      grok46: "系统级集成与疑难 Debug 专家",
+      opus5: "大型桌面应用的架构与重构",
+      muse12: "跨模块桌面仓库的长上下文分析"
+    },
+    crossplatform: {
+      sol56: "Flutter / RN / Tauri / Electron 多技术栈的综合工程能力最稳",
+      muse12: "跨端代码库体量大时的长上下文利器",
+      glm53: "跨平台 UI 还原与长任务的高性价比主力",
+      grok46: "原生桥接与疑难问题专家"
+    },
+    agent: {
+      opus5: "计划、工具调用、自纠错能力最强档，Agent 首选",
+      sol56: "Terminal Agent 与工具链集成全面",
+      grok46: "长时间运行 Agent 与复杂工具编排优势明显",
+      muse12: "长上下文 Agent 任务（大仓库内自主工作）",
+      glm53: "Browser Use / Computer Use 原生支持，Agent 性价比主力",
+      dsv4flash: "成本型 Agent 批量任务的优选"
+    },
+    clisystem: {
+      grok46: "Rust / C / C++ / Shell 与性能优化的最优选，CLI/系统工具第一梯队",
+      sol56: "终端工作流与工程执行力强",
+      opus5: "底层架构与算法问题把握深",
+      muse12: "大型系统代码库的长上下文分析"
+    },
+    fullstack: {
+      opus5: "前后端边界设计一致性强，大型全栈项目首选",
+      sol56: "全链路工程执行：客户端到部署",
+      muse12: "Monorepo 全栈仓库的长上下文理解",
+      glm53: "全栈场景下的高性价比长任务主力"
+    }
+  };
+  function avoidWhy(r, selNow) {
+    if (selNow.platform !== "all" && r.m.platformFit) {
+      const f = r.m.platformFit[selNow.platform];
+      if (f != null && f < 90) return `${PLATFORM_LABELS.find(x => x[0] === selNow.platform)[1]} 平台适配偏低（${f}/100），存在明显更优选项`;
+    }
+    return (r.m.avoid[0] || "综合匹配分靠后") + "等场景非其强项";
+  }
   const BASE_WEIGHTS = { project: 0.25, task: 0.20, context: 0.15, agent: 0.15, coding: 0.10, specialty: 0.10, cost: 0.05 };
   const PREF_WEIGHTS = {
     quality: { project: 0.20, task: 0.15, context: 0.15, agent: 0.20, coding: 0.15, specialty: 0.10, cost: 0.05 },
@@ -1066,6 +1190,11 @@
   const SCALE_LABELS = [["small", "小型 <1万行"], ["mid", "中型 1–10万行"], ["large", "大型 10–50万行"], ["xlarge", "超大型 >50万行"]];
   const PREF_LABELS = [["quality", "质量"], ["speed", "速度"], ["cost", "成本"], ["context", "上下文长度"], ["agent", "Agent 自主性"], ["chinese", "中文能力"]];
   const LANG_LABELS = [["en", "以英文为主"], ["zh", "以中文为主"], ["mixed", "中英混合"]];
+  const PLATFORM_LABELS = [
+    ["all", "全部平台"], ["ios", "iOS"], ["macos", "macOS"], ["android", "Android"],
+    ["web", "Web"], ["backend", "后端"], ["desktop", "桌面应用"], ["crossplatform", "跨平台"],
+    ["agent", "AI Agent"], ["clisystem", "CLI / 系统工具"], ["fullstack", "全栈"]
+  ];
   const TASK_LABELS = [
     ["dev", "从 0 开发"], ["debug", "Debug"], ["refactor", "重构"], ["review", "代码审查"],
     ["bulk", "批量修改"], ["arch", "架构设计"], ["feature", "功能新增"], ["automation", "自动化"],
@@ -1087,7 +1216,7 @@
     screenshot: ["ui-clone"], browser: ["browser-automation"]
   };
 
-  const sel = { type: null, scale: "mid", task: null, pref: "quality", lang: "mixed", agent: false };
+  const sel = { platform: "all", type: null, scale: "mid", task: null, pref: "quality", lang: "mixed", agent: false };
 
   function renderChips(container, labels, group, current, onPick) {
     container.innerHTML = labels.map(([v, l]) =>
@@ -1116,6 +1245,7 @@
   }
 
   function initSelector() {
+    renderChips($("#platformChips"), PLATFORM_LABELS, "platform", sel.platform);
     renderChips($("#typeChips"), TYPE_LABELS, "type", sel.type, () => { sel.type = document.querySelector("#typeChips .chip[aria-pressed='true']").dataset.v; });
     renderSeg($("#scaleSeg"), SCALE_LABELS, "scale", sel.scale);
     renderChips($("#taskChips"), TASK_LABELS, "task", sel.task, () => { sel.task = document.querySelector("#taskChips .chip[aria-pressed='true']").dataset.v; });
@@ -1123,6 +1253,9 @@
     renderSeg($("#langSeg"), [["en", "以英文为主"], ["zh", "以中文为主"], ["mixed", "中英混合"]], "lang", sel.lang);
     renderSeg($("#agentSeg"), [["no", "否"], ["yes", "是"]], "agent", sel.agent ? "yes" : "no");
 
+    $("#platformChips").addEventListener("click", (e) => {
+      const b = e.target.closest(".chip"); if (b) sel.platform = b.dataset.v;
+    });
     $("#typeChips").addEventListener("click", (e) => {
       const b = e.target.closest(".chip"); if (b) sel.type = b.dataset.v;
     });
@@ -1180,6 +1313,9 @@
         ((m.caps.reasoning + m.caps.speed) / 2 * 20) * prefs.coding +
         specialtyScore * prefs.specialty +
         m.caps.cost * 20 * prefs.cost;
+      // 平台因子：选定具体平台时叠加平台适配分（30% 权重，第一优先级）
+      const platformFit = (sel.platform !== "all" && m.platformFit) ? (m.platformFit[sel.platform] || 60) : null;
+      if (platformFit != null) total += platformFit * 0.30;
       // 语言因子：以中文为主的项目额外叠加中文能力评分（约 15% 权重）
       if (sel.lang === "zh") total += m.caps.chinese * 20 * 0.15;
       if (prefs.speedBonus) total += m.caps.speed * 20 * 0.15;
@@ -1192,7 +1328,7 @@
       });
       if (avoidFlag) total *= 0.55;
 
-      return { m, total, projectReason };
+      return { m, total, projectReason, platformFit, projectMatch, taskMatch };
     }).sort((a, b) => b.total - a.total);
 
     const top = scores.slice(0, 3);
@@ -1212,23 +1348,31 @@
       $("#resultShell").hidden = false;
       $("#resultMeta").textContent = selSummary;
       const medals = ["第一推荐", "第二推荐", "第三推荐"];
+      const platformName = PLATFORM_LABELS.find(x => x[0] === sel.platform)[1];
       $("#rankList").innerHTML = top.map((r, i) => {
         const m = r.m;
         const p = PROJECTS.find(x => x.id === (PROJECT_ALIAS[sel.type] || [])[0]);
-        const why = (i === 0 && r.projectReason) ? r.projectReason : m.notes.split("。")[0] + "。";
+        let why = (i === 0 && r.projectReason) ? r.projectReason : m.notes.split("。")[0] + "。";
+        if (sel.platform !== "all") {
+          why = `${platformName} 平台适配 ${r.platformFit}/100——${(PLATFORM_REASONS[sel.platform] && PLATFORM_REASONS[sel.platform][m.id]) || "该平台场景下综合表现稳定"}。` + why;
+        }
+        const metrics = sel.platform !== "all"
+          ? `<div class="rank-metrics"><span>平台适配 <b>${r.platformFit}</b></span><span>项目适配 <b>${r.projectMatch}</b></span><span>Agent <b>${m.caps.agent * 20}</b></span></div>`
+          : "";
         return `
           <div class="rank-item ${i === 0 ? "top" : ""}">
             <span class="rank-badge">${i + 1}</span>
             <div class="rank-body">
               <div class="rn">${esc(m.name)} <span class="score">${medals[i]} · 匹配分 ${Math.round(r.total)}</span></div>
+              ${metrics}
               <p class="why">${esc(why)}</p>
               <div class="tags">${m.tags.slice(0, 3).map(t => `<span class="tag accent">${esc(t)}</span>`).join("")}</div>
             </div>
           </div>`;
       }).join("");
       $("#resultAvoid").innerHTML = `
-        <div class="av-title">不优先（存在明显更优选项）</div>
-        <div class="avoid-chips">${avoidList.map(r => `<span class="avoid-chip">${esc(r.m.name)}</span>`).join("")}</div>`;
+        <div class="av-title">不优先（存在明显更优选项，不代表不能完成）</div>
+        <div class="avoid-chips">${avoidList.map(r => `<span class="avoid-chip" title="${esc(avoidWhy(r, sel))}">${esc(r.m.name)}·${esc(avoidWhy(r, sel))}</span>`).join("")}</div>`;
       $("#resultNote").textContent = "推荐基于加权评分：项目类型匹配 × 25% + 任务类型 × 20% + 规模/上下文 × 15% + Agent × 15% + 代码 × 10% + 专项 × 10% + 成本 × 5%，并按你的偏好动态调整权重；以中文为主的项目会额外叠加中文能力评分（约 15%）。项目适配度是综合判断，不是官方排名。";
     }, 350);
   }
@@ -1455,6 +1599,25 @@
     }).join("");
   }
 
+  /* ═══════════════ 热力图 ═══════════════ */
+  function renderPlatformHeatmap() {
+    const rows = [
+      ["ios", "iOS"], ["macos", "macOS"], ["android", "Android"], ["web", "Web"],
+      ["backend", "后端"], ["desktop", "桌面应用"], ["crossplatform", "跨平台"],
+      ["agent", "AI Agent"], ["clisystem", "CLI / 系统"], ["fullstack", "全栈"]
+    ];
+    $("#pHeatHead").innerHTML = `<th>平台</th>${MODELS.map(m => `<th>${esc(m.name)}</th>`).join("")}`;
+    $("#pHeatBody").innerHTML = rows.map(([pid, label]) => {
+      const cells = MODELS.map(m => {
+        const v = m.platformFit ? m.platformFit[pid] : null;
+        if (v == null) return `<td><span class="lv na">—</span></td>`;
+        const cls = v >= 90 ? "hi" : v >= 75 ? "mid" : "lo";
+        return `<td><span class="lv ${cls}" title="${esc(m.name)} · ${label}：${v}/100">${v}</span></td>`;
+      }).join("");
+      return `<tr><td>${label}</td>${cells}</tr>`;
+    }).join("");
+  }
+
   /* ═══════════════ 成本条形图 ═══════════════ */
   function renderCost() {
     const priced = MODELS.filter(m => m.priceIn != null);
@@ -1517,6 +1680,7 @@
     initCompare();
     renderComparePicks();
     renderHeatmap();
+    renderPlatformHeatmap();
     renderCost();
     renderBench();
     initTheme();
