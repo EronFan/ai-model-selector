@@ -14,6 +14,12 @@
     V2 (2026-08-27): 新增 GLM-5.3 Flash（Z.ai / 智谱，2026-08-26 发布），
           全站接入：模型卡 / 详情 / 推荐器 / 任务表 / 热力图 / 对比 / 成本；
           新增项目类型：Browser/Computer Use、截图→UI 还原；新增任务：截图还原、Browser 自动化。
+    V3 (2026-08-27): 选择器新增「项目主要语言」（中文/英文/混合）因子（中文 +15% 权重）；
+          推荐区空态/加载态压缩；默认改为浅色模式。
+    V4 (2026-08-27): Hero 压缩（单行标题、留白减半），页边距加宽（容器 1120px、动态 clamp 边距）。
+    V5 (2026-08-27): 白天模式切换为「青瓷绿」色板（底 #F4F7F6 / 卡片 #FFFFFF /
+          主色 #0F7B6C / 淡底 #E2F2EE / 文字 #17211D）；新增 --accent-fill token，
+          雷达图填充与 hero 光晕改走主题变量；深色模式维持 Linear 靓蓝不变。
 
   font-stack: Inter（依据 linear-app/DESIGN.md 明示，先于 craft 黑名单）
   项目适配度是综合判断，不是官方排名；benchmark 来自 PRD 标注的官方/第三方来源，不同 harness 不可严格横向比较。
@@ -39,6 +45,7 @@
       --accent-bright: #7170ff;
       --accent-hover: #828fff;
       --on-accent: #ffffff;
+      --accent-fill: rgba(94, 106, 210, 0.22);
       --accent-soft: rgba(94, 106, 210, 0.16);
       --border: rgba(255, 255, 255, 0.08);
       --border-subtle: rgba(255, 255, 255, 0.05);
@@ -65,17 +72,21 @@
       font-feature-settings: "cv01", "ss03";
     }
     [data-theme="light"] {
-      --bg: #f7f8f8;
+      --bg: #f4f7f6;
       --panel: #ffffff;
-      --surface: #f3f4f5;
-      --surface-2: #e6e6e6;
-      --fg: #1b1c1e;
-      --fg-2: #3f4348;
-      --fg-3: #6b7076;
-      --fg-4: #9aa0a8;
-      --border: rgba(20, 22, 26, 0.12);
-      --border-subtle: rgba(20, 22, 26, 0.07);
-      --accent-soft: rgba(94, 106, 210, 0.14);
+      --surface: #ecf2ef;
+      --surface-2: #dce7e2;
+      --fg: #17211d;
+      --fg-2: #3a453f;
+      --fg-3: #65716c;
+      --fg-4: #8b968f;
+      --accent: #0f7b6c;
+      --accent-bright: #0c655a;
+      --accent-hover: #128574;
+      --accent-soft: #e2f2ee;
+      --accent-fill: rgba(15, 123, 108, 0.16);
+      --border: rgba(23, 33, 29, 0.13);
+      --border-subtle: rgba(23, 33, 29, 0.07);
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -137,8 +148,8 @@
     .hero::before {
       content: ""; position: absolute; inset: 0; pointer-events: none;
       background:
-        radial-gradient(600px 300px at 18% 8%, rgba(94,106,210,0.14), transparent 65%),
-        radial-gradient(520px 260px at 85% 20%, rgba(16,185,129,0.05), transparent 60%);
+        radial-gradient(600px 300px at 18% 8%, color-mix(in oklch, var(--accent) 13%, transparent), transparent 65%),
+        radial-gradient(520px 260px at 85% 20%, color-mix(in oklch, var(--emerald) 8%, transparent), transparent 60%);
     }
     .hero-inner { position: relative; max-width: 760px; }
     .eyebrow {
@@ -200,7 +211,7 @@
     }
     [data-theme="light"] .chip { background: #fff; }
     .chip:hover { border-color: var(--accent); color: var(--fg); }
-    .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
     .chip:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
     .seg { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,0.02); }
     [data-theme="light"] .seg { background: #fff; }
@@ -985,7 +996,7 @@
       const [x, y] = pt(i, R + 13);
       return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="5.6" fill="var(--fg-3)" font-family="ui-monospace,Menlo,monospace">${k[1].replace("/", "")}</text>`;
     }).join("");
-    return `<svg viewBox="0 0 110 110" role="img" aria-label="${esc(m.name)}能力雷达图">${grid}<polygon points="${poly}" fill="rgba(94,106,210,0.22)" stroke="var(--accent-bright)" stroke-width="1.3"/>${dots}${labels}</svg>`;
+    return `<svg viewBox="0 0 110 110" role="img" aria-label="${esc(m.name)}能力雷达图">${grid}<polygon points="${poly}" fill="var(--accent-fill)" stroke="var(--accent-bright)" stroke-width="1.3"/>${dots}${labels}</svg>`;
   }
 
   function barRow(label, val, max, cls, fmt) {
