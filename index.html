@@ -917,35 +917,41 @@
     },
     {
       id: "dsv4pro", name: "DeepSeek V4 Pro", provider: "DeepSeek", tier: "A",
-      positioning: "高性价比强模型——中高难度 Coding / 批量开发，低成本强力工程师",
-      tags: ["性价比", "中高难度", "批量"],
+      version: "DeepSeek-V4-Pro-0813", status: "ga", statusLabel: "0813 GA", releaseDate: "2026-08-13",
+      positioning: "旗舰级 Coding / Agent——复杂工程优先的高性价比旗舰模型",
+      tags: ["高性价比旗舰", "复杂 Coding", "Agent", "Debug", "重构", "大型 Repo", "1M Context"],
       platformFit: { ios: 90, macos: 90, android: 90, web: 94, backend: 96, desktop: 90, crossplatform: 92, agent: 96, clisystem: 94, fullstack: 96 },
-      stability: 89,
+      stability: 92,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 4, cost: 5 },
-      context: "未公布", priceIn: null, priceOut: null,
-      best: ["中高难度 Coding", "Python / Node", "后端", "API", "批量 Coding", "成本敏感项目"],
-      avoid: ["顶级架构", "极难 Debug", "高风险核心系统重构"],
+      context: "1M tokens", maxOutput: "384K tokens", priceIn: null, priceOut: null,
+      best: ["复杂工程", "Debug", "重构", "架构设计", "大型 Repo", "复杂 Agent", "后端系统", "代码审查", "性能优化"],
+      avoid: ["极难根因分析（建议切 Opus/GPT-5.6/Grok 4.6）", "Apple 原生开发不作第一选择"],
       benchmarks: [],
-      notes: "成本低、能力高的主力档：常规后端、API、脚本与批量开发的好选择；顶级架构与极难 Debug 建议切高阶模型。"
+      notes: "DeepSeek-V4-Pro-0813（GA，2026-08-13 发布）：旗舰级 Coding / Agent 高性价比模型，擅长复杂 Coding、Agent、Debug、重构、架构设计与大型 Repo；1M Context / 384K 输出，Tool Calling 与 Codex 工作流支持。来源：DeepSeek 官方 API 文档与 GA 公告。"
     },
     {
       id: "dsv4flash", name: "DeepSeek V4 Flash", provider: "DeepSeek", tier: "A",
-      positioning: "超高性价比 Agent 模型——高频 Coding / Agent / 1M Context，批量 Coding 主力",
-      tags: ["超低成本", "1M Context", "高频 Agent"],
-      platformFit: { ios: 86, macos: 86, android: 86, web: 95, backend: 94, desktop: 86, crossplatform: 92, agent: 95, clisystem: 94, fullstack: 95 },
-      stability: 86,
+      version: "DeepSeek-V4-Flash-0731", status: "public-beta", statusLabel: "0731 正式版 API", releaseDate: "2026-07-31",
+      positioning: "高性能高吞吐 Agent Coding——超高性价比的主力模型，不是能力较弱的 Flash",
+      tags: ["高吞吐", "超高性价比", "Agent Coding", "Terminal", "批量 Coding", "1M Context", "Codex"],
+      platformFit: { ios: 86, macos: 86, android: 86, web: 95, backend: 95, desktop: 86, crossplatform: 92, agent: 96, clisystem: 95, fullstack: 96 },
+      stability: 90,
       caps: { reasoning: 4, agent: 5, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
-      context: "1M", priceIn: null, priceOut: null,
-      best: ["大量 Coding", "CRUD", "Python 脚本", "Node API", "爬虫", "数据处理", "批量修改", "高频 Agent", "长上下文普通工程"],
-      avoid: ["最复杂架构", "高风险生产系统", "极难根因分析"],
+      context: "1M tokens", maxOutput: "384K tokens", priceIn: null, priceOut: null,
+      best: ["批量 Coding", "高频 Agent", "Terminal / 自动化", "Web / 后端", "Python / TypeScript / Node", "数据处理", "爬虫", "测试生成", "Codex 工作流", "成本敏感大规模调用"],
+      avoid: ["复杂架构 / 大型重构（优先 Opus/GPT-5.6/Grok 4.6/Muse/V4 Pro）", "极难根因分析", "Apple 原生开发不作第一选择"],
       benchmarks: [
-        { label: "Terminal-Bench 2.1", value: "82.7", src: "DeepSeek 官方" },
-        { label: "NL2Repo", value: "54.2", src: "DeepSeek 官方" },
-        { label: "DeepSWE", value: "54.4", src: "DeepSeek 官方" },
-        { label: "Toolathlon verified", value: "70.3", src: "DeepSeek 官方" },
-        { label: "DSBench-FullStack", value: "68.7", src: "DeepSeek 官方" }
+        { label: "Terminal-Bench 2.1", value: "82.7", src: "DeepSeek 官方 · V4-Flash-0731" },
+        { label: "NL2Repo", value: "54.2", src: "DeepSeek 官方 · V4-Flash-0731" },
+        { label: "CyberGym", value: "76.7", src: "DeepSeek 官方 · V4-Flash-0731" },
+        { label: "DeepSWE", value: "54.4", src: "DeepSeek 官方 · V4-Flash-0731" },
+        { label: "Toolathlon Verified", value: "70.3", src: "DeepSeek 官方 · V4-Flash-0731" },
+        { label: "Agent Last Exam", value: "25.2", src: "DeepSeek 官方 · V4-Flash-0731" },
+        { label: "AutomationBench", value: "25.1", src: "DeepSeek 官方 · V4-Flash-0731" },
+        { label: "DSBench FullStack", value: "68.7", src: "DeepSeek 官方 · V4-Flash-0731" },
+        { label: "DSBench Hard", value: "59.6", src: "DeepSeek 官方 · V4-Flash-0731" }
       ],
-      notes: "官方文档显示支持 1M context、最高 384K 输出、Tool Calls、Responses API，并专门适配 Codex。适合高频 Agent Coding、批量改代码、脚本、CRUD、数据处理；核心架构与极难 Debug 应切更高阶模型。"
+      notes: "DeepSeek-V4-Flash-0731（正式版 API / Public Beta，2026-07-31 发布）：高性能、高吞吐的 Coding / Agent 主力，不是能力较弱的 Flash。1M Context / 384K 输出，Tool Calling、Responses API 与 Codex 工作流支持；适合批量开发、Terminal、自动化与高频任务。来源：DeepSeek 官方发布公告与 API 文档。"
     },
     {
       id: "kimi3", name: "Kimi K3", provider: "Moonshot AI", tier: "A",
@@ -1006,9 +1012,9 @@
     { id: "swiftui", name: "SwiftUI", desc: "SwiftUI 界面开发", recs: { sol56: "S", opus5: "A", grok46: "B", luna56: "C" }, reason: "UI 状态 + Apple Framework 组合复杂" },
     { id: "nextjs", name: "Next.js 网站", desc: "Next.js 全栈网站", recs: { grok45: "S", glm53: "A", luna56: "A", sol56: "B", opus5: "C" }, reason: "快速 UI、全栈脚手架、迭代效率" },
     { id: "react-dash", name: "React Dashboard", desc: "React 数据面板", recs: { grok45: "S", luna56: "A", sol56: "B", opus5: "C" }, reason: "前端生成速度和 UI 迭代最重要" },
-    { id: "saas-mvp", name: "SaaS MVP", desc: "SaaS 从 0 到 1", recs: { grok45: "S", luna56: "A", sol56: "B", opus5: "C" }, reason: "从 0 到 1 速度比极限推理更重要" },
-    { id: "saas-large", name: "大型 SaaS", desc: "规模化 SaaS 产品", recs: { opus5: "S", sol56: "A", glm53: "A", grok46: "B", dsv4flash: "C" }, reason: "架构、模块边界、长期维护" },
-    { id: "legacy-refactor", name: "老项目重构", desc: "存量系统重构", recs: { opus5: "S", grok46: "A", sol56: "B", grok45: "C" }, reason: "需要理解历史代码和隐性依赖" },
+    { id: "saas-mvp", name: "SaaS MVP", desc: "SaaS 从 0 到 1", recs: { grok45: "S", glm53: "A", luna56: "A", dsv4flash: "A", sol56: "B", opus5: "C" }, reason: "从 0 到 1 速度比极限推理更重要" },
+    { id: "saas-large", name: "大型 SaaS", desc: "规模化 SaaS 产品", recs: { opus5: "S", sol56: "A", glm53: "A", dsv4pro: "A", grok46: "B", dsv4flash: "C" }, reason: "架构、模块边界、长期维护" },
+    { id: "legacy-refactor", name: "老项目重构", desc: "存量系统重构", recs: { opus5: "S", grok46: "A", dsv4pro: "B", sol56: "B", grok45: "C" }, reason: "需要理解历史代码和隐性依赖" },
     { id: "big-repo", name: "大型 Repo 分析", desc: "大型代码库分析", recs: { muse12: "S", glm53: "A", opus5: "B", kimi3: "B", luna56: "C" }, reason: "代码量巨大，长上下文价值高" },
     { id: "bulk-refactor", name: "大批量重构", desc: "跨文件批量改造", recs: { muse12: "S", glm53: "A", dsv4flash: "A", luna56: "B", opus5: "C" }, reason: "需要大量文件操作且成本敏感" },
     { id: "rust", name: "Rust", desc: "Rust 系统开发", recs: { grok46: "S", grok45: "A", sol56: "B", dsv4flash: "C" }, reason: "系统能力、类型系统、性能推理" },
@@ -1018,11 +1024,11 @@
     { id: "java", name: "Java / Spring", desc: "企业级 Java 工程", recs: { sol56: "S", opus5: "A", dsv4pro: "B", grok45: "C" }, reason: "企业工程、架构、规范" },
     { id: "cli", name: "CLI 工具", desc: "命令行工具", recs: { grok45: "S", grok46: "A", glm53: "B", dsv4flash: "B", opus5: "C" }, reason: "快速迭代和终端效率" },
     { id: "devops", name: "DevOps", desc: "运维与 CI/CD", recs: { sol56: "S", grok46: "A", opus5: "B", grok45: "C" }, reason: "Shell、Docker、CI/CD、排障" },
-    { id: "agent", name: "AI Agent", desc: "自主智能体开发", recs: { opus5: "S", glm53: "A", grok46: "A", muse12: "B", luna56: "C" }, reason: "需要计划、工具调用、自纠错" },
+    { id: "agent", name: "AI Agent", desc: "自主智能体开发", recs: { opus5: "S", glm53: "A", grok46: "A", dsv4flash: "A", muse12: "B", luna56: "C" }, reason: "需要计划、工具调用、自纠错" },
     { id: "crawler", name: "爬虫 / 数据采集", desc: "爬虫与采集", recs: { dsv4flash: "S", luna56: "A", dsv4pro: "B", opus5: "C" }, reason: "大量重复 Coding 和数据处理" },
     { id: "crud", name: "CRUD 后台", desc: "增删改查后台", recs: { dsv4flash: "S", luna56: "A", grok45: "B", opus5: "C" }, reason: "任务结构清晰，不需极限推理" },
     { id: "data-script", name: "数据处理脚本", desc: "数据处理 / ETL", recs: { dsv4flash: "S", dsv4pro: "A", luna56: "B", opus5: "C" }, reason: "成本效率优先" },
-    { id: "debug-hard", name: "复杂 Debug", desc: "疑难问题排查", recs: { grok46: "S", opus5: "A", sol56: "B", grok45: "C" }, reason: "假设验证和根因分析重要" },
+    { id: "debug-hard", name: "复杂 Debug", desc: "疑难问题排查", recs: { grok46: "S", opus5: "A", dsv4pro: "B", sol56: "B", grok45: "C" }, reason: "假设验证和根因分析重要" },
     { id: "security", name: "安全敏感工程", desc: "安全关键系统", recs: { sol56: "S", opus5: "A", grok46: "B", glm53: "C", luna56: "C" }, reason: "对错误和边界条件更敏感" },
     { id: "chinese-biz", name: "中文业务系统", desc: "中文业务系统", recs: { kimi3: "S", glm52: "A", glm53: "A", sol56: "B", grok45: "C" }, reason: "中文业务语义和国内生态" },
     { id: "browser-automation", name: "Browser / Computer Use", desc: "浏览器与电脑自动化", recs: { glm53: "S", sol56: "A", grok46: "B", luna56: "C" }, reason: "Browser Use + 视觉反馈 + 工具调用闭环" },
@@ -1167,7 +1173,7 @@
         <div class="mc-head">
           <div>
             <div class="mc-name">${esc(m.name)}</div>
-            <div class="mc-provider">${esc(m.provider)}</div>
+            <div class="mc-provider">${esc(m.provider)}${m.statusLabel ? ' · <span style="color:var(--accent-bright)">' + esc(m.statusLabel) + '</span>' : ''}</div>
           </div>
           <span class="mc-tier ${m.tier === "S" ? "s" : ""}">${m.tier === "S" ? "S · 旗舰" : "A · 主力"}</span>
         </div>
@@ -1371,11 +1377,12 @@
     const contextBoost = { new: 1.0, small: 0.6, mid: 1.0, large: 1.4, xlarge: 1.8 }[sel.scale] || 1;
 
     const scores = MODELS.map(m => {
-      let projectMatch = 40, taskMatch = 40, projectReason = "";
+      let projectMatch = 40, taskMatch = 40, projectReason = "", projHasC = false, taskHasC = false;
       projAliases.forEach(pid => {
         const p = PROJECTS.find(x => x.id === pid);
         if (p && p.recs[m.id]) {
           const lv = LEVEL_SCORE[p.recs[m.id]];
+          if (p.recs[m.id] === "C") projHasC = true;
           if (lv > projectMatch) { projectMatch = lv; projectReason = p.reason; }
         }
       });
@@ -1383,9 +1390,13 @@
         const p = PROJECTS.find(x => x.id === pid);
         if (p && p.recs[m.id]) {
           const lv = LEVEL_SCORE[p.recs[m.id]];
+          if (p.recs[m.id] === "C") taskHasC = true;
           if (lv > taskMatch) taskMatch = lv;
         }
       });
+      // "C 不优先"只在无更高等级背书时压分（有 S/A 并存说明场景混合，不硬罚）
+      if (projHasC && projectMatch <= 45) projectMatch = 25;
+      if (taskHasC && taskMatch <= 45) taskMatch = 25;
 
       const platformFit = (sel.platform !== "all" && m.platformFit) ? (m.platformFit[sel.platform] || 60) : null;
       const platformScore = platformFit != null ? platformFit : 70;
@@ -1436,13 +1447,8 @@
       // 长时 Agent：上下文加权
       if (sel.agentMode !== "human" && (sel.duration === "hours" || sel.duration === "longrun")) total += m.caps.context * 20 * 0.06;
 
-      let avoidFlag = false;
-      // 硬降权只由任务别名触发（项目类型捎带的冲突场景用连续分自然拉低，避免误伤）
-      taskAliases.forEach(pid => {
-        const p = PROJECTS.find(x => x.id === pid);
-        if (p && p.recs[m.id] === "C") avoidFlag = true;
-      });
-      if (avoidFlag) total *= 0.55;
+      // 硬降权已在 projectMatch/taskMatch 内处理（C 无更高等级背书时压至 25）
+      const avoidFlag = (projectMatch <= 25) || (taskMatch <= 25);
 
       const fitPct = Math.max(35, Math.min(98, Math.round(total)));
       return { m, total, fitPct, projectReason, platformFit, projectMatch, taskMatch, langScore, agentScore, prefScore, avoidFlag };
@@ -1592,7 +1598,9 @@
             <div class="section-label">规格</div>
             <table class="spec-table">
               <tr><td>定位</td><td>${esc(m.positioning)}</td></tr>
-              <tr><td>Context</td><td>${esc(m.context)}</td></tr>
+              ${m.version ? `<tr><td>实际版本</td><td>${esc(m.version)}${m.statusLabel ? '（' + esc(m.statusLabel) + '）' : ''}</td></tr>` : ""}
+              ${m.releaseDate ? `<tr><td>发布时间</td><td>${esc(m.releaseDate)}${m.status === "ga" ? ' · GA' : m.status === "public-beta" ? ' · 正式版 API / Public Beta' : ''}</td></tr>` : ""}
+              <tr><td>Context</td><td>${esc(m.context)}${m.maxOutput ? ' · Max Output ' + esc(m.maxOutput) : ''}</td></tr>
               <tr><td>API 价格</td><td>${price}</td></tr>
               <tr><td>关键词</td><td>${m.tags.map(t => `<span class="tag accent" style="margin-right:4px;">${esc(t)}</span>`).join("")}</td></tr>
             </table>
@@ -1712,6 +1720,7 @@
       <tbody>
         ${row("定位", m => esc(m.positioning))}
         ${capRows}
+        ${row("实际版本", m => m.version ? esc(m.version) + (m.statusLabel ? `<br/><span style="font-size:11px; color:var(--fg-4);">${esc(m.statusLabel)}</span>` : "") : "—")}
         ${row("Context", m => esc(m.context))}
         ${row("API 价格", m => m.priceIn ? `$${m.priceIn} / $${m.priceOut} / 1M tok` : "未收录")}
         ${row("最适合 Top 3", m => m.best.slice(0, 3).map(x => `<span class="tag" style="margin:2px 3px 2px 0;">${esc(x)}</span>`).join(""))}
