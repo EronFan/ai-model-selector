@@ -17,6 +17,13 @@
     V3 (2026-08-27): 选择器新增「项目主要语言」（中文/英文/混合）因子（中文 +15% 权重）；
           推荐区空态/加载态压缩；默认改为浅色模式。
     V4 (2026-08-27): Hero 压缩（单行标题、留白减半），页边距加宽（容器 1120px、动态 clamp 边距）。
+    V10 (2026-08-28): 筛选系统重构——8 维筛选（平台/类型/规模/任务/编程语言/Agent 工作方式/
+          沟通语言/关注重点）；新增编程语言多选 + languageFit 18 语言适配矩阵、stability 维度、
+          Agent 三档工作方式 + 任务持续时间、关注重点限选 2；适配分引擎改为
+          平台 20+类型 20+任务 20+语言 15+Agent 15+规模 5+关注 5（沟通语言辅助修正，规模未知弱化）；
+          推荐带适配度 %、逐项匹配展开、第二名差异说明；硬降权仅由任务别名触发。
+    V9 (2026-08-27): 白天模式切换为「玄墨」色板（底 #F7F6F3 / 主色 #222226）；
+          平台适配热力图包进 container 对齐。
     V8 (2026-08-27): 筛选去重——平台负责技术环境，项目类型只留产品形态
           （SaaS/Web 产品、数据处理/ETL、爬虫采集、企业软件、Browser 自动化、截图→UI）；
            新增 PLATFORM_PROJECT_ALIAS：选定平台隐式携带对应场景权重；
@@ -229,7 +236,32 @@
     [data-theme="light"] .seg button[aria-pressed="true"] { background: var(--bg); }
     .seg button:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 1px; }
     .selector-submit { width: 100%; justify-content: center; margin-top: 4px; }
+    .task-groups { display: grid; gap: 8px; }
+    .task-group-label { font-size: 11px; font-weight: 590; letter-spacing: 0.06em; color: var(--fg-4); text-transform: uppercase; margin-top: 2px; }
+    .chip[aria-pressed="true"].multi { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .sub-field { margin-top: 10px; display: grid; gap: 7px; }
+    .sub-field > label { font-size: 12px; color: var(--fg-4); }
+    .adv-toggle-row { margin-top: 2px; margin-bottom: 2px; }
+    .adv-toggle {
+      display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0;
+      color: var(--accent-bright); font-size: 13px; font-weight: 550; padding: 6px 4px; border-radius: 6px;
+    }
+    .adv-toggle svg { width: 13px; height: 13px; transition: transform 0.15s ease; }
+    .adv-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .adv-body { display: grid; gap: var(--gap-md); padding-top: 4px; border-top: 1px dashed var(--border); margin-top: 4px; padding-top: 14px; }
     .selector-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--fg-4); }
+    .fit-num { font-family: var(--font-mono); font-size: 20px; font-weight: 590; color: var(--fg); }
+    .fit-pct { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); }
+    .rank-detail { display: none; margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+    .rank-detail.open { display: grid; gap: 8px; }
+    .rank-detail .rd-title { font-size: 11px; font-weight: 590; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-4); }
+    .match-row { display: flex; gap: 7px; align-items: baseline; font-size: 12.5px; color: var(--fg-3); line-height: 1.5; }
+    .match-row .mk { font-family: var(--font-mono); font-size: 10.5px; flex-shrink: 0; width: 86px; color: var(--fg-4); }
+    .match-row.good .mk { color: var(--emerald); }
+    .match-row.bad .mk { color: var(--danger); }
+    .detail-btn { background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 510; color: var(--fg-2); transition: border-color 0.15s ease, color 0.15s ease; }
+    .detail-btn:hover { border-color: var(--accent-bright); color: var(--fg); }
+    .detail-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
     /* 推荐结果 */
     .result-empty {
@@ -546,37 +578,50 @@
         <div class="selector-shell">
           <form class="panel" id="selectorForm" novalidate>
             <div class="field">
-              <label id="lbl-platform">开发平台</label>
+              <label id="lbl-platform">① 开发平台</label>
               <div class="chip-row" role="group" aria-labelledby="lbl-platform" id="platformChips"></div>
             </div>
             <div class="field">
-              <label id="lbl-type">项目类型</label>
+              <label id="lbl-type">② 项目类型</label>
               <div class="chip-row" role="group" aria-labelledby="lbl-type" id="typeChips"></div>
             </div>
             <div class="field">
-              <label id="lbl-scale">项目规模</label>
+              <label id="lbl-scale">③ 项目规模</label>
               <div class="seg" role="group" aria-labelledby="lbl-scale" id="scaleSeg"></div>
             </div>
             <div class="field">
-              <label id="lbl-task">任务类型</label>
-              <div class="chip-row" role="group" aria-labelledby="lbl-task" id="taskChips"></div>
+              <label id="lbl-task">④ 当前任务</label>
+              <div class="task-groups" id="taskChips"></div>
             </div>
             <div class="field">
-              <label id="lbl-pref">你最关心什么</label>
-              <div class="chip-row" role="group" aria-labelledby="lbl-pref" id="prefChips"></div>
+              <label id="lbl-code">⑤ 编程语言（可多选）</label>
+              <div class="chip-row" role="group" aria-labelledby="lbl-code" id="codeLangChips"></div>
             </div>
             <div class="field">
-              <label id="lbl-lang">项目主要语言</label>
-              <div class="seg" role="group" aria-labelledby="lbl-lang" id="langSeg"></div>
-            </div>
-            <div class="field">
-              <label id="lbl-agent">是否长期让 Agent 自主工作</label>
+              <label id="lbl-agent">⑥ Agent 工作方式</label>
               <div class="seg" role="group" aria-labelledby="lbl-agent" id="agentSeg"></div>
+              <div class="sub-field" id="durationWrap" hidden>
+                <label id="lbl-duration">任务持续时间</label>
+                <div class="seg" role="group" aria-labelledby="lbl-duration" id="durationSeg"></div>
+              </div>
+            </div>
+            <div class="adv-toggle-row">
+              <button type="button" class="adv-toggle" id="advToggle" aria-expanded="false">高级选项（沟通语言 · 关注重点）<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>
+            </div>
+            <div class="adv-body" id="advBody" hidden>
+              <div class="field">
+                <label id="lbl-comm">⑦ 沟通语言（影响中文能力权重）</label>
+                <div class="seg" role="group" aria-labelledby="lbl-comm" id="commSeg"></div>
+              </div>
+              <div class="field">
+                <label id="lbl-pref">⑧ 你最在意什么（最多选 2 项）</label>
+                <div class="chip-row" role="group" aria-labelledby="lbl-pref" id="prefChips"></div>
+              </div>
             </div>
             <button class="btn btn-primary selector-submit" type="submit">生成推荐</button>
             <div class="selector-meta">
-              <span id="formStatus" role="status">请选择任务类型，并至少填写平台或项目类型其一</span>
-              <span class="hint">加权评分：类型 25% · 任务 20% · 上下文 15% · Agent 15% · 代码 10% · 专项 10% · 成本 5%；选定平台后另叠平台适配分（30%）</span>
+              <span id="formStatus" role="status">选择平台 / 项目类型 / 任务即可推荐，其余可选</span>
+              <span class="hint">适配分：平台 20% · 类型 20% · 任务 20% · 语言 15% · Agent 15% · 规模 5% · 关注 5%</span>
             </div>
           </form>
 
@@ -584,7 +629,7 @@
             <div class="result-empty" id="resultEmpty">
               <div>
                 <div class="big" aria-hidden="true">→</div>
-                <p>选好项目类型和任务后，这里会给出<b>第一 / 第二 / 第三推荐</b>、各自的原因，以及<b>不建议优先使用</b>的模型清单。</p>
+                <p>选好平台 / 项目类型 / 任务（任一即可）后，这里会给出<b>前三推荐（含适配度百分比与推荐理由）</b>，以及<b>当前条件下不优先</b>的模型清单；点“为什么是它 / 为什么不是它”可展开逐项匹配。</p>
               </div>
             </div>
             <div class="result-loading" id="resultLoading" hidden role="status" aria-live="polite">
@@ -797,6 +842,7 @@
       positioning: "顶级复杂工程模型——深度推理 / 大型 Repo / Agent，高难度项目专家",
       tags: ["深度推理", "大型工程", "架构", "重构"],
       platformFit: { ios: 95, macos: 96, android: 94, web: 95, backend: 99, desktop: 96, crossplatform: 95, agent: 99, clisystem: 97, fullstack: 98 },
+      stability: 95,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 5, systems: 4, chinese: 4, speed: 3, cost: 2 },
       context: "未公布", priceIn: null, priceOut: null,
       best: ["大型后端", "复杂 SaaS", "大型 Repo", "老项目重构", "架构设计", "复杂数据库设计", "深度 Debug", "高难度 Agent"],
@@ -809,6 +855,7 @@
       positioning: "GPT-5.6 旗舰档——综合工程 / Terminal / Agent，高能力工程师",
       tags: ["工程执行", "Terminal", "综合能力", "Agent"],
       platformFit: { ios: 98, macos: 98, android: 96, web: 96, backend: 99, desktop: 98, crossplatform: 97, agent: 99, clisystem: 99, fullstack: 99 },
+      stability: 94,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 5, systems: 4, chinese: 4, speed: 4, cost: 3 },
       context: "约 1M 级", priceIn: null, priceOut: null,
       best: ["复杂工程", "Terminal Agent", "DevOps", "iOS/macOS", "Git / CI/CD", "复杂自动化", "工程级 Debug"],
@@ -821,6 +868,7 @@
       positioning: "GPT-5.6 高性价比档——高并发 / 大量 Coding / 成本效率，廉价 GPT 主力",
       tags: ["高并发", "低成本", "高吞吐"],
       platformFit: { ios: 94, macos: 94, android: 92, web: 97, backend: 97, desktop: 94, crossplatform: 95, agent: 94, clisystem: 96, fullstack: 97 },
+      stability: 90,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
       context: "约 1.05M", priceIn: 0.20, priceOut: 1.20,
       best: ["高频 Coding", "API / CRUD", "批量代码生成", "测试代码生成", "普通 Debug", "自动化脚本", "成本敏感型 Agent"],
@@ -833,6 +881,7 @@
       positioning: "新一代前沿 Agent 模型——推理 / 长任务 / Coding Agent，难 + 快",
       tags: ["难+快", "Agent", "Systems", "Debug"],
       platformFit: { ios: 95, macos: 99, android: 94, web: 96, backend: 97, desktop: 99, crossplatform: 95, agent: 99, clisystem: 99, fullstack: 97 },
+      stability: 93,
       caps: { reasoning: 5, agent: 5, repo: 4, context: 4, frontend: 4, iosMac: 5, systems: 5, chinese: 3, speed: 4, cost: 4 },
       context: "500K", priceIn: 2.0, priceOut: 6.0,
       best: ["复杂 Debug", "长时间 Agent", "Mac App", "Rust / C / C++", "系统工具", "大型重构", "高难度工程"],
@@ -845,6 +894,7 @@
       positioning: "高速 Coding 模型——快速开发 / Web / MVP / Systems，极速开发工程师",
       tags: ["极速 Coding", "Web", "MVP"],
       platformFit: { ios: 90, macos: 92, android: 90, web: 99, backend: 94, desktop: 92, crossplatform: 93, agent: 94, clisystem: 96, fullstack: 96 },
+      stability: 86,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 4, frontend: 5, iosMac: 4, systems: 5, chinese: 3, speed: 5, cost: 4 },
       context: "未公布", priceIn: null, priceOut: null,
       best: ["Web MVP", "React / Next.js", "Dashboard", "Landing Page", "Node.js", "CLI", "快速原型", "快速 Rust/C++ 开发"],
@@ -857,6 +907,7 @@
       positioning: "长上下文 Coding 模型——大 Repo / 长 Context / Agent，代码仓库专家",
       tags: ["大 Repo", "1M Context", "Agent"],
       platformFit: { ios: 94, macos: 95, android: 93, web: 95, backend: 98, desktop: 96, crossplatform: 96, agent: 99, clisystem: 97, fullstack: 98 },
+      stability: 91,
       caps: { reasoning: 4, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 3, speed: 4, cost: 5 },
       context: "约 1.05M", priceIn: 1.25, priceOut: 4.25,
       best: ["大型 Repo", "长上下文项目", "跨目录修改", "大批量重构", "Agent 长任务", "代码库迁移"],
@@ -869,6 +920,7 @@
       positioning: "高性价比强模型——中高难度 Coding / 批量开发，低成本强力工程师",
       tags: ["性价比", "中高难度", "批量"],
       platformFit: { ios: 90, macos: 90, android: 90, web: 94, backend: 96, desktop: 90, crossplatform: 92, agent: 96, clisystem: 94, fullstack: 96 },
+      stability: 89,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 4, cost: 5 },
       context: "未公布", priceIn: null, priceOut: null,
       best: ["中高难度 Coding", "Python / Node", "后端", "API", "批量 Coding", "成本敏感项目"],
@@ -881,6 +933,7 @@
       positioning: "超高性价比 Agent 模型——高频 Coding / Agent / 1M Context，批量 Coding 主力",
       tags: ["超低成本", "1M Context", "高频 Agent"],
       platformFit: { ios: 86, macos: 86, android: 86, web: 95, backend: 94, desktop: 86, crossplatform: 92, agent: 95, clisystem: 94, fullstack: 95 },
+      stability: 86,
       caps: { reasoning: 4, agent: 5, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
       context: "1M", priceIn: null, priceOut: null,
       best: ["大量 Coding", "CRUD", "Python 脚本", "Node API", "爬虫", "数据处理", "批量修改", "高频 Agent", "长上下文普通工程"],
@@ -899,6 +952,7 @@
       positioning: "长上下文中文强模型——中文 / 长任务 / Coding Agent，中文项目专家",
       tags: ["中文", "长上下文", "Agent"],
       platformFit: { ios: 88, macos: 88, android: 88, web: 93, backend: 94, desktop: 88, crossplatform: 92, agent: 95, clisystem: 90, fullstack: 94 },
+      stability: 90,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 4 },
       context: "长上下文", priceIn: null, priceOut: null,
       best: ["中文项目", "长上下文项目", "大型 Agent", "大型中文业务系统", "中文需求分析"],
@@ -916,6 +970,7 @@
       positioning: "中文 Agent / 工程模型——中文 / Agent / 国内工程，国产 Agent 工程师",
       tags: ["中文", "国内业务", "Agent"],
       platformFit: { ios: 87, macos: 87, android: 89, web: 92, backend: 94, desktop: 88, crossplatform: 92, agent: 96, clisystem: 91, fullstack: 94 },
+      stability: 89,
       caps: { reasoning: 4, agent: 5, repo: 4, context: 4, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 5 },
       context: "未公布", priceIn: null, priceOut: null,
       best: ["中文业务系统", "国内 SaaS", "中文 Agent", "国内工程生态"],
@@ -928,6 +983,7 @@
       positioning: "1M Context + 原生多模态 + 强 Agent Coding——以 Flash 级成本提供高性价比的长任务工程能力",
       tags: ["1M Context", "Agent Coding", "Native Multimodal", "Browser Use", "Computer Use"],
       platformFit: { ios: 91, macos: 91, android: 90, web: 97, backend: 96, desktop: 91, crossplatform: 96, agent: 99, clisystem: 97, fullstack: 97 },
+      stability: 91,
       caps: { reasoning: 4, agent: 5, repo: 5, context: 5, frontend: 5, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 5 },
       context: "1M", priceIn: 0.15, priceOut: 0.50,
       best: ["大型 Repo", "Long-Horizon Agent", "Web / SaaS", "UI 复刻", "Browser / Computer Use", "批量 Coding", "多文件重构"],
@@ -1068,19 +1124,13 @@
       glm53: "全栈场景下的高性价比长任务主力"
     }
   };
-  function avoidWhy(r, selNow) {
-    if (selNow.platform !== "all" && r.m.platformFit) {
-      const f = r.m.platformFit[selNow.platform];
-      if (f != null && f < 90) return `${PLATFORM_LABELS.find(x => x[0] === selNow.platform)[1]} 平台适配偏低（${f}/100），存在明显更优选项`;
+  function avoidWhy(r) {
+    if (sel.platform !== "all" && r.m.platformFit) {
+      const f = r.m.platformFit[sel.platform];
+      if (f != null && f < 90) return `${PLATFORM_LABELS.find(x => x[0] === sel.platform)[1]} 平台适配偏低（${f}/100），存在明显更优选项`;
     }
     return (r.m.avoid[0] || "综合匹配分靠后") + "等场景非其强项";
   }
-  const BASE_WEIGHTS = { project: 0.25, task: 0.20, context: 0.15, agent: 0.15, coding: 0.10, specialty: 0.10, cost: 0.05 };
-  const PREF_WEIGHTS = {
-    quality: { project: 0.20, task: 0.15, context: 0.15, agent: 0.20, coding: 0.15, specialty: 0.10, cost: 0.05 },
-    speed:   { project: 0.20, task: 0.15, context: 0.10, agent: 0.10, coding: 0.15, specialty: 0.10, cost: 0.05, speedBonus: true },
-    cost:    { project: 0.20, task: 0.15, context: 0.10, agent: 0.10, coding: 0.10, specialty: 0.10, cost: 0.25 }
-  };
   const CAP_KEYS = [
     ["reasoning", "复杂推理"], ["agent", "Agent"], ["repo", "大型 Repo"], ["context", "长上下文"],
     ["frontend", "前端"], ["iosMac", "iOS/macOS"], ["systems", "Rust/C++"], ["chinese", "中文工程"],
@@ -1159,22 +1209,47 @@
 
   /* ═══════════════ 项目选择器 ═══════════════ */
   const TYPE_LABELS = [
-    ["saas", "SaaS / Web 产品"], ["data", "数据处理 / ETL"], ["crawler", "爬虫采集"],
-    ["enterprise", "企业软件"], ["browser", "Browser 自动化"], ["visual", "截图 → UI"]
+    ["saas", "SaaS / Web 产品"], ["ecommerce", "电商 / 内容平台"], ["enterprise", "企业软件"],
+    ["data", "数据处理 / ETL"], ["crawler", "爬虫 / 数据采集"], ["aiapp", "AI 应用"],
+    ["browser", "Browser 自动化"], ["clidev", "CLI / 开发工具"], ["systems", "系统工具"],
+    ["mobileapp", "移动 App"], ["desktopapp", "桌面 App"], ["game", "游戏"],
+    ["api", "API / 后端服务"], ["visual", "截图 → UI"]
   ];
-  const SCALE_LABELS = [["small", "小型 <1万行"], ["mid", "中型 1–10万行"], ["large", "大型 10–50万行"], ["xlarge", "超大型 >50万行"]];
-  const PREF_LABELS = [["quality", "质量"], ["speed", "速度"], ["cost", "成本"], ["context", "上下文长度"], ["agent", "Agent 自主性"], ["chinese", "中文能力"]];
-  const LANG_LABELS = [["en", "以英文为主"], ["zh", "以中文为主"], ["mixed", "中英混合"]];
+  const SCALE_LABELS = [["new", "新项目 / 未知"], ["small", "小型 <1万行"], ["mid", "中型 1–10万行"], ["large", "大型 10–50万行"], ["xlarge", "超大型 >50万行"]];
+  const PREF_LABELS = [["quality", "代码质量"], ["speed", "开发速度"], ["cost", "成本"], ["context", "长上下文"], ["agent", "Agent 自主性"], ["chinese", "中文能力"], ["stability", "稳定性"]];
+  const COMM_LABELS = [["en", "英文"], ["zh", "中文"], ["mixed", "中英混合"]];
+  const CODE_LANGS = [
+    ["swift", "Swift"], ["swiftui", "SwiftUI"], ["objc", "Objective-C"], ["kotlin", "Kotlin"], ["java", "Java"],
+    ["typescript", "TypeScript"], ["javascript", "JavaScript"], ["python", "Python"], ["rust", "Rust"], ["go", "Go"],
+    ["c", "C"], ["cpp", "C++"], ["csharp", "C#"], ["php", "PHP"], ["dart", "Dart"],
+    ["sql", "SQL"], ["shell", "Shell"], ["htmlcss", "HTML / CSS"]
+  ];
   const PLATFORM_LABELS = [
     ["all", "全部平台"], ["ios", "iOS"], ["macos", "macOS"], ["android", "Android"],
     ["web", "Web"], ["backend", "后端"], ["desktop", "桌面应用"], ["crossplatform", "跨平台"],
     ["agent", "AI Agent"], ["clisystem", "CLI / 系统工具"], ["fullstack", "全栈"]
   ];
-  const TASK_LABELS = [
-    ["dev", "从 0 开发"], ["debug", "Debug"], ["refactor", "重构"], ["review", "代码审查"],
-    ["bulk", "批量修改"], ["arch", "架构设计"], ["feature", "功能新增"], ["automation", "自动化"],
-    ["screenshot", "截图还原"], ["browser", "Browser 自动化"]
+  const TASK_GROUPS = [
+    { name: "开发", tasks: [["bootstrap", "从 0 开发"], ["mvp", "MVP / 原型"], ["feature", "功能新增"]] },
+    { name: "工程", tasks: [["debug", "Debug"], ["refactor", "重构"], ["arch", "架构设计"], ["review", "代码审查"], ["performance", "性能优化"], ["testing", "测试"]] },
+    { name: "Agent / 自动化", tasks: [["bulk", "批量修改"], ["longagent", "长时间自主开发"], ["browser", "Browser 自动化"], ["computeruse", "Computer Use"], ["screenshot", "截图还原"]] }
   ];
+  const AGENT_MODES = [["human", "人工协作"], ["assist", "Agent 辅助"], ["auto", "Agent 高度自主"]];
+  const DURATION_LABELS = [["once", "单次任务"], ["minutes", "几十分钟"], ["hours", "数小时"], ["longrun", "长时间持续运行"]];
+  // 语言适配分（0–100，选型权重定位，非官方实测）
+  const LANGUAGE_FIT = {
+    opus5:    { swift: 94, swiftui: 94, objc: 88, kotlin: 90, java: 93, typescript: 95, javascript: 95, python: 96, rust: 90, go: 92, c: 88, cpp: 89, csharp: 90, php: 88, dart: 89, sql: 90, shell: 90, htmlcss: 92 },
+    sol56:    { swift: 97, swiftui: 97, objc: 90, kotlin: 93, java: 95, typescript: 96, javascript: 96, python: 96, rust: 93, go: 94, c: 90, cpp: 91, csharp: 92, php: 90, dart: 91, sql: 92, shell: 95, htmlcss: 94 },
+    luna56:   { swift: 90, swiftui: 90, objc: 85, kotlin: 89, java: 92, typescript: 96, javascript: 96, python: 94, rust: 88, go: 91, c: 86, cpp: 87, csharp: 89, php: 88, dart: 88, sql: 90, shell: 90, htmlcss: 94 },
+    grok46:   { swift: 92, swiftui: 92, objc: 89, kotlin: 90, java: 92, typescript: 93, javascript: 93, python: 93, rust: 97, go: 94, c: 96, cpp: 96, csharp: 91, php: 88, dart: 89, sql: 89, shell: 94, htmlcss: 91 },
+    grok45:   { swift: 87, swiftui: 88, objc: 84, kotlin: 87, java: 89, typescript: 97, javascript: 97, python: 91, rust: 93, go: 90, c: 90, cpp: 90, csharp: 88, php: 89, dart: 87, sql: 87, shell: 90, htmlcss: 97 },
+    muse12:   { swift: 90, swiftui: 90, objc: 86, kotlin: 89, java: 93, typescript: 94, javascript: 94, python: 94, rust: 91, go: 92, c: 88, cpp: 89, csharp: 90, php: 88, dart: 89, sql: 91, shell: 90, htmlcss: 92 },
+    dsv4pro:  { swift: 86, swiftui: 86, objc: 83, kotlin: 88, java: 92, typescript: 92, javascript: 92, python: 96, rust: 88, go: 91, c: 87, cpp: 87, csharp: 88, php: 89, dart: 86, sql: 92, shell: 89, htmlcss: 90 },
+    dsv4flash:{ swift: 82, swiftui: 82, objc: 80, kotlin: 85, java: 89, typescript: 93, javascript: 93, python: 95, rust: 85, go: 89, c: 84, cpp: 84, csharp: 85, php: 88, dart: 84, sql: 91, shell: 88, htmlcss: 92 },
+    kimi3:    { swift: 85, swiftui: 86, objc: 82, kotlin: 87, java: 90, typescript: 91, javascript: 91, python: 93, rust: 87, go: 89, c: 85, cpp: 86, csharp: 87, php: 87, dart: 86, sql: 90, shell: 87, htmlcss: 89 },
+    glm52:    { swift: 84, swiftui: 84, objc: 82, kotlin: 86, java: 90, typescript: 90, javascript: 90, python: 93, rust: 86, go: 89, c: 85, cpp: 85, csharp: 87, php: 88, dart: 86, sql: 90, shell: 88, htmlcss: 89 },
+    glm53:    { swift: 87, swiftui: 88, objc: 83, kotlin: 88, java: 91, typescript: 95, javascript: 95, python: 95, rust: 89, go: 91, c: 87, cpp: 88, csharp: 88, php: 89, dart: 90, sql: 91, shell: 90, htmlcss: 96 }
+  };
   // 平台隐式携带的项目场景（平台负责技术环境，项目类型只留产品形态，去重不失精度）
   const PLATFORM_PROJECT_ALIAS = {
     ios: ["ios"], macos: ["macos", "swiftui"], android: [], web: ["nextjs", "react-dash", "nodejs"],
@@ -1183,32 +1258,44 @@
     fullstack: ["nextjs", "saas-mvp", "nodejs"]
   };
   const PROJECT_ALIAS = {
-    saas: ["saas-mvp", "saas-large", "nextjs"], data: ["data-script", "crawler"], crawler: ["crawler"],
+    saas: ["saas-mvp", "saas-large"], ecommerce: ["saas-mvp", "saas-large"],
     enterprise: ["java", "chinese-biz", "saas-large", "security"],
-    browser: ["browser-automation"], visual: ["ui-clone"]
+    data: ["data-script", "crawler"], crawler: ["crawler"], aiapp: ["agent", "api"],
+    browser: ["browser-automation"], clidev: ["cli", "rust", "cpp"], systems: ["rust", "cpp", "security"],
+    mobileapp: ["ios", "macos"], desktopapp: ["macos", "swiftui"], game: ["cpp", "rust"],
+    api: ["python", "nodejs", "java", "data-script"], visual: ["ui-clone"]
   };
   const TASK_PROJECT_ALIAS = {
-    dev: ["saas-mvp", "nextjs", "ios", "macos", "cli"], debug: ["debug-hard"],
-    refactor: ["legacy-refactor", "bulk-refactor"], review: ["legacy-refactor"],
-    bulk: ["bulk-refactor", "big-repo"], arch: ["saas-large", "agent"],
-    feature: ["saas-mvp", "ios"], automation: ["crawler", "data-script", "devops"],
-    screenshot: ["ui-clone"], browser: ["browser-automation"]
+    bootstrap: ["saas-mvp", "nextjs", "ios", "macos", "cli"], mvp: ["saas-mvp", "nextjs"], feature: ["saas-mvp", "ios"],
+    debug: ["debug-hard"], refactor: ["legacy-refactor"], arch: ["saas-large", "agent"],
+    review: ["legacy-refactor"], performance: ["debug-hard", "rust"], testing: ["data-script", "devops"],
+    bulk: ["bulk-refactor", "big-repo"], longagent: ["agent", "big-repo"],
+    browser: ["browser-automation"], computeruse: ["browser-automation"], screenshot: ["ui-clone"]
   };
 
-  const sel = { platform: "all", type: null, scale: "mid", task: null, pref: "quality", lang: "mixed", agent: false };
+    const sel = { platform: "all", type: null, scale: "new", task: null, comm: "mixed", agentMode: "assist", duration: "hours" };
+  const selState = { prefSel: new Set(["quality"]), langSel: new Set() };
 
-  function renderChips(container, labels, group, current, onPick) {
-    container.innerHTML = labels.map(([v, l]) =>
-      `<button type="button" class="chip" data-v="${v}" aria-pressed="${current === v}">${l}</button>`
+  function renderChips(container, items, opts = {}) {
+    const multi = !!opts.multi;
+    container.innerHTML = items.map(([v, l]) =>
+      `<button type="button" class="chip${multi ? " multi" : ""}" data-v="${v}" aria-pressed="${opts.isSelected ? opts.isSelected(v) : false}">${l}</button>`
     ).join("");
     container.querySelectorAll(".chip").forEach(btn => {
       btn.addEventListener("click", () => {
-        if (group === "pref") { sel.pref = btn.dataset.v; }
-        container.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
-        onPick && onPick();
+        if (multi) {
+          const on = btn.getAttribute("aria-pressed") !== "true";
+          if (on && opts.max && opts.current().size >= opts.max) return;
+          on ? opts.current().add(btn.dataset.v) : opts.current().delete(btn.dataset.v);
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
+        } else {
+          container.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+          if (opts.onChange) opts.onChange(btn.dataset.v);
+        }
       });
     });
   }
+
   function renderSeg(container, labels, group, current) {
     container.innerHTML = labels.map(([v, l]) =>
       `<button type="button" data-v="${v}" aria-pressed="${current === v}">${l}</button>`
@@ -1216,36 +1303,54 @@
     container.querySelectorAll("button").forEach(btn => {
       btn.addEventListener("click", () => {
         if (group === "scale") sel.scale = btn.dataset.v;
-        if (group === "agent") sel.agent = btn.dataset.v === "yes";
-        if (group === "lang") sel.lang = btn.dataset.v;
+        if (group === "agent") { sel.agentMode = btn.dataset.v; syncDuration(); }
+        if (group === "comm") sel.comm = btn.dataset.v;
+        if (group === "duration") sel.duration = btn.dataset.v;
         container.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
       });
     });
   }
 
-  function initSelector() {
-    renderChips($("#platformChips"), PLATFORM_LABELS, "platform", sel.platform);
-    renderChips($("#typeChips"), TYPE_LABELS, "type", sel.type, () => { sel.type = document.querySelector("#typeChips .chip[aria-pressed='true']").dataset.v; });
-    renderSeg($("#scaleSeg"), SCALE_LABELS, "scale", sel.scale);
-    renderChips($("#taskChips"), TASK_LABELS, "task", sel.task, () => { sel.task = document.querySelector("#taskChips .chip[aria-pressed='true']").dataset.v; });
-    renderChips($("#prefChips"), PREF_LABELS, "pref", sel.pref);
-    renderSeg($("#langSeg"), [["en", "以英文为主"], ["zh", "以中文为主"], ["mixed", "中英混合"]], "lang", sel.lang);
-    renderSeg($("#agentSeg"), [["no", "否"], ["yes", "是"]], "agent", sel.agent ? "yes" : "no");
+  function renderTaskGroups() {
+    const box = $("#taskChips");
+    box.innerHTML = TASK_GROUPS.map(g =>
+      `<div class="task-group-label">${g.name}</div><div class="chip-row">${g.tasks.map(([v, l]) =>
+        `<button type="button" class="chip" data-v="${v}" aria-pressed="${sel.task === v}">${l}</button>`).join("")}</div>`
+    ).join("");
+    box.querySelectorAll(".chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        sel.task = btn.dataset.v;
+        box.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+      });
+    });
+  }
 
-    $("#platformChips").addEventListener("click", (e) => {
-      const b = e.target.closest(".chip"); if (b) sel.platform = b.dataset.v;
-    });
-    $("#typeChips").addEventListener("click", (e) => {
-      const b = e.target.closest(".chip"); if (b) sel.type = b.dataset.v;
-    });
-    $("#taskChips").addEventListener("click", (e) => {
-      const b = e.target.closest(".chip"); if (b) sel.task = b.dataset.v;
+  function syncDuration() {
+    $("#durationWrap").hidden = sel.agentMode === "human";
+  }
+
+  function initSelector() {
+    renderChips($("#platformChips"), PLATFORM_LABELS, { onChange: v => sel.platform = v, isSelected: v => sel.platform === v });
+    renderChips($("#typeChips"), TYPE_LABELS, { onChange: v => sel.type = v, isSelected: v => sel.type === v });
+    renderSeg($("#scaleSeg"), SCALE_LABELS, "scale", sel.scale);
+    renderTaskGroups();
+    renderChips($("#codeLangChips"), CODE_LANGS, { multi: true, current: () => selState.langSel, isSelected: v => selState.langSel.has(v) });
+    renderSeg($("#agentSeg"), AGENT_MODES, "agent", sel.agentMode);
+    renderSeg($("#durationSeg"), DURATION_LABELS, "duration", sel.duration);
+    renderSeg($("#commSeg"), COMM_LABELS, "comm", sel.comm);
+    renderChips($("#prefChips"), PREF_LABELS, { multi: true, max: 2, current: () => selState.prefSel, isSelected: v => selState.prefSel.has(v) });
+
+    $("#advToggle").addEventListener("click", () => {
+      const open = $("#advBody").hidden;
+      $("#advBody").hidden = !open;
+      $("#advToggle").setAttribute("aria-expanded", open ? "true" : "false");
     });
 
     $("#selectorForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      if (!sel.task || (sel.platform === "all" && !sel.type)) {
-        $("#formStatus").textContent = sel.task ? "请先选择开发平台或项目类型（二者选一即可）" : "请先选择任务类型，并填写平台或项目类型其一";
+      const hasBase = sel.platform !== "all" || sel.type || sel.task;
+      if (!hasBase) {
+        $("#formStatus").textContent = "请至少选择一个条件：平台 / 项目类型 / 任务";
         $("#formStatus").setAttribute("role", "alert");
         return;
       }
@@ -1255,18 +1360,18 @@
     });
   }
 
+  /* 适配分引擎：平台 20% · 项目类型 20% · 任务 20% · 语言 15% · Agent 15% · 规模 5% · 关注 5% */
+  const PREF_KEY = { quality: "reasoning", speed: "speed", cost: "cost", context: "context", agent: "agent", chinese: "chinese", stability: "stability" };
   function weightedRecommend() {
     const typeAliases = PROJECT_ALIAS[sel.type] || [];
     const platAliases = sel.platform !== "all" ? (PLATFORM_PROJECT_ALIAS[sel.platform] || []) : [];
     const projAliases = [...new Set([...platAliases, ...typeAliases])];
     const taskAliases = TASK_PROJECT_ALIAS[sel.task] || [];
-    const prefs = PREF_WEIGHTS[sel.pref] || BASE_WEIGHTS;
-    const contextBoost = { small: 0.6, mid: 1.0, large: 1.4, xlarge: 1.8 }[sel.scale] || 1;
-    const agentBoost = sel.agent ? 1.35 : 1.0;
+    const scaleUnknown = sel.scale === "new";
+    const contextBoost = { new: 1.0, small: 0.6, mid: 1.0, large: 1.4, xlarge: 1.8 }[sel.scale] || 1;
 
     const scores = MODELS.map(m => {
-      let projectMatch = 40, taskMatch = 40;
-      let projectReason = "";
+      let projectMatch = 40, taskMatch = 40, projectReason = "";
       projAliases.forEach(pid => {
         const p = PROJECTS.find(x => x.id === pid);
         if (p && p.recs[m.id]) {
@@ -1281,48 +1386,100 @@
           if (lv > taskMatch) taskMatch = lv;
         }
       });
-      const hitAlias = projAliases.find(a => SPECIALTY_MAP[a]);
-      const specialtyKey = hitAlias ? SPECIALTY_MAP[hitAlias] : "reasoning";
-      const specialtyScore = specialtyKey === "coding"
-        ? (m.caps.reasoning + m.caps.speed) / 2 * 20
-        : m.caps[specialtyKey] * 20;
+
+      const platformFit = (sel.platform !== "all" && m.platformFit) ? (m.platformFit[sel.platform] || 60) : null;
+      const platformScore = platformFit != null ? platformFit : 70;
+
+      // 编程语言：多选语言的语言适配分均值；未选时中性基线
+      let langScore = 70, langHits = [];
+      if (selState.langSel.size) {
+        let sum = 0, cnt = 0;
+        selState.langSel.forEach(l => {
+          const v = (LANGUAGE_FIT[m.id] && LANGUAGE_FIT[m.id][l]) || 70;
+          sum += v; cnt++;
+          if (v >= 92) langHits.push(l);
+        });
+        langScore = sum / cnt;
+      }
+
+      // Agent 工作方式：人工协作重交互/终端；高度自主重长任务+稳定性+上下文
+      let agentScore = m.caps.agent * 20;
+      if (sel.agentMode === "human") agentScore = (m.caps.speed + m.caps.reasoning) / 2 * 20;
+      if (sel.agentMode === "auto") agentScore = (m.caps.agent * 20 + m.caps.context * 20 + (m.stability || 90)) / 3;
+
+      // 关注重点：最多 2 项，均分 5%
+      let prefScore = 80;
+      if (selState.prefSel.size) {
+        prefScore = 0;
+        selState.prefSel.forEach(pk => {
+          const key = PREF_KEY[pk];
+          prefScore += key === "stability" ? (m.stability || 90) : m.caps[key] * 20;
+        });
+        prefScore /= selState.prefSel.size;
+      }
+
+      // 规模：未知时弱化影响（基线 75）
+      const scaleScore = scaleUnknown ? 75 : m.caps.context * 20 * contextBoost;
 
       let total =
-        projectMatch * prefs.project +
-        taskMatch * prefs.task +
-        m.caps.context * 20 * prefs.context * contextBoost +
-        m.caps.agent * 20 * prefs.agent * agentBoost +
-        ((m.caps.reasoning + m.caps.speed) / 2 * 20) * prefs.coding +
-        specialtyScore * prefs.specialty +
-        m.caps.cost * 20 * prefs.cost;
-      // 平台因子：选定具体平台时叠加平台适配分（30% 权重，第一优先级）
-      const platformFit = (sel.platform !== "all" && m.platformFit) ? (m.platformFit[sel.platform] || 60) : null;
-      if (platformFit != null) total += platformFit * 0.30;
-      // 语言因子：以中文为主的项目额外叠加中文能力评分（约 15% 权重）
-      if (sel.lang === "zh") total += m.caps.chinese * 20 * 0.15;
-      if (prefs.speedBonus) total += m.caps.speed * 20 * 0.15;
+        platformScore * 0.20 +
+        projectMatch * 0.20 +
+        taskMatch * 0.20 +
+        langScore * 0.15 +
+        agentScore * 0.15 +
+        Math.min(scaleScore, 100) * 0.05 +
+        prefScore * 0.05;
 
-      // 项目表明确"C 不优先"的模型直接降权
+      // 沟通语言：辅助修正
+      if (sel.comm === "zh") total += m.caps.chinese * 20 * 0.05;
+
+      // 长时 Agent：上下文加权
+      if (sel.agentMode !== "human" && (sel.duration === "hours" || sel.duration === "longrun")) total += m.caps.context * 20 * 0.06;
+
       let avoidFlag = false;
-      projAliases.forEach(pid => {
+      // 硬降权只由任务别名触发（项目类型捎带的冲突场景用连续分自然拉低，避免误伤）
+      taskAliases.forEach(pid => {
         const p = PROJECTS.find(x => x.id === pid);
         if (p && p.recs[m.id] === "C") avoidFlag = true;
       });
       if (avoidFlag) total *= 0.55;
 
-      return { m, total, projectReason, platformFit, projectMatch, taskMatch };
+      const fitPct = Math.max(35, Math.min(98, Math.round(total)));
+      return { m, total, fitPct, projectReason, platformFit, projectMatch, taskMatch, langScore, agentScore, prefScore, avoidFlag };
     }).sort((a, b) => b.total - a.total);
 
     const top = scores.slice(0, 3);
     const avoidList = scores.filter(s => !top.includes(s)).sort((a, b) => a.total - b.total).slice(0, 2);
-    return { top, avoidList };
+    return { top, avoidList, scores };
+  }
+
+  const TASK_ALL = TASK_GROUPS.flatMap(g => g.tasks);
+
+  function matchRows(r) {
+    const rows = [];
+    const platName = PLATFORM_LABELS.find(x => x[0] === sel.platform)[1];
+    if (sel.platform !== "all") rows.push(["good", "平台", `${platName} 平台适配 ${r.platformFit}/100（权重 20%）`]);
+    if (sel.type) rows.push(["good", "项目类型", `${TYPE_LABELS.find(x => x[0] === sel.type)[1]}：项目匹配 ${r.projectMatch}/100`]);
+    if (sel.task) rows.push(["good", "任务", `${TASK_ALL.find(x => x[0] === sel.task)[1]}：任务匹配 ${r.taskMatch}/100`]);
+    if (selState.langSel.size) {
+      const names = [...selState.langSel].map(l => CODE_LANGS.find(x => x[0] === l)[1]).join(" + ");
+      rows.push([r.langScore >= 88 ? "good" : "bad", "语言", `${names} 平均语言适配 ${Math.round(r.langScore)}/100（权重 15%）`]);
+    }
+    rows.push(["good", "Agent", `${AGENT_MODES.find(x => x[0] === sel.agentMode)[1]}：Agent 得分 ${Math.round(r.agentScore)}/100`]);
+    if (selState.prefSel.size) {
+      const names = [...selState.prefSel].map(p => PREF_LABELS.find(x => x[0] === p)[1]).join(" + ");
+      rows.push(["good", "关注重点", `${names} → 得分 ${Math.round(r.prefScore)}/100`]);
+    }
+    if (r.avoidFlag) rows.push(["bad", "风险", "所选场景下该模型属于“不优先”区间，已降权"]);
+    return rows.map(([cls, k, t]) => `<div class="match-row ${cls}"><span class="mk">${k}</span><span>${esc(t)}</span></div>`).join("");
   }
 
   function runRecommend() {
     $("#resultEmpty").hidden = true;
     $("#resultShell").hidden = true;
     $("#resultLoading").hidden = false;
-    const selSummary = `平台：${PLATFORM_LABELS.find(x => x[0] === sel.platform)[1]} · 类型：${sel.type ? TYPE_LABELS.find(x => x[0] === sel.type)[1] : "未选"} · 规模：${SCALE_LABELS.find(x => x[0] === sel.scale)[1]} · 任务：${TASK_LABELS.find(x => x[0] === sel.task)[1]} · 偏好：${PREF_LABELS.find(x => x[0] === sel.pref)[1]} · 语言：${LANG_LABELS.find(x => x[0] === sel.lang)[1]}`;
+    const platName = PLATFORM_LABELS.find(x => x[0] === sel.platform)[1];
+    const selSummary = `平台：${platName} · 类型：${sel.type ? TYPE_LABELS.find(x => x[0] === sel.type)[1] : "未选"} · 规模：${SCALE_LABELS.find(x => x[0] === sel.scale)[1]} · 任务：${sel.task ? TASK_ALL.find(x => x[0] === sel.task)[1] : "未选"}`;
 
     setTimeout(() => {
       const { top, avoidList } = weightedRecommend();
@@ -1330,35 +1487,50 @@
       $("#resultShell").hidden = false;
       $("#resultMeta").textContent = selSummary;
       const medals = ["第一推荐", "第二推荐", "第三推荐"];
-      const platformName = PLATFORM_LABELS.find(x => x[0] === sel.platform)[1];
       $("#rankList").innerHTML = top.map((r, i) => {
         const m = r.m;
+        const cond = [
+          platName,
+          sel.type ? TYPE_LABELS.find(x => x[0] === sel.type)[1] : null,
+          SCALE_LABELS.find(x => x[0] === sel.scale)[1],
+          sel.task ? TASK_ALL.find(x => x[0] === sel.task)[1] : null,
+          selState.langSel.size ? [...selState.langSel].map(l => CODE_LANGS.find(x => x[0] === l)[1]).join("+") : null,
+          AGENT_MODES.find(x => x[0] === sel.agentMode)[1]
+        ].filter(Boolean).join(" + ");
         let why = (i === 0 && r.projectReason) ? r.projectReason : m.notes.split("。")[0] + "。";
-        if (sel.platform !== "all") {
-          why = `${platformName} 平台适配 ${r.platformFit}/100——${(PLATFORM_REASONS[sel.platform] && PLATFORM_REASONS[sel.platform][m.id]) || "该平台场景下综合表现稳定"}。` + why;
+        if (sel.platform !== "all" && PLATFORM_REASONS[sel.platform] && PLATFORM_REASONS[sel.platform][m.id]) {
+          why = PLATFORM_REASONS[sel.platform][m.id] + "。" + why;
         }
-        const metrics = sel.platform !== "all"
-          ? `<div class="rank-metrics"><span>平台适配 <b>${r.platformFit}</b></span><span>项目适配 <b>${r.projectMatch}</b></span><span>Agent <b>${m.caps.agent * 20}</b></span></div>`
-          : "";
+        const compare = i === 0 ? "" : `<p class="why" style="margin-top:4px;"><b>与第一名的差异：</b>综合适配低 ${top[0].fitPct - r.fitPct} 个百分点${i === 1 ? "，可作等效备选" : "，建议在第一推荐受限时切换"}。</p>`;
         return `
           <div class="rank-item ${i === 0 ? "top" : ""}">
             <span class="rank-badge">${i + 1}</span>
             <div class="rank-body">
-              <div class="rn">${esc(m.name)} <span class="score">${medals[i]} · 匹配分 ${Math.round(r.total)}</span></div>
-              ${metrics}
-              <p class="why">${esc(why)}</p>
+              <div class="rn">${esc(m.name)} <span class="score">${medals[i]}</span> <span class="fit-num">${r.fitPct}%</span><span class="fit-pct">适配度</span></div>
+              ${sel.platform !== "all" ? `<div class="rank-metrics"><span>平台适配 <b>${r.platformFit}</b></span><span>项目匹配 <b>${r.projectMatch}</b></span><span>语言适配 <b>${Math.round(r.langScore)}</b></span><span>Agent <b>${Math.round(r.agentScore)}</b></span></div>` : ""}
+              <p class="why"><b>为什么推荐：</b>${esc(cond)}——${esc(why)}</p>
+              ${compare}
               <div class="tags">${m.tags.slice(0, 3).map(t => `<span class="tag accent">${esc(t)}</span>`).join("")}</div>
+              <button type="button" class="detail-btn" data-rd="rd-${i}">为什么是它 / 为什么不是它</button>
+              <div class="rank-detail" id="rd-${i}">
+                <div class="rd-title">优势</div>
+                <p class="why">${esc(m.best.slice(0, 3).join("、"))}；${esc((m.notes || "").split("。")[0])}。</p>
+                <div class="rd-title">劣势 / 边界</div>
+                <p class="why">${esc(m.avoid.join("、"))}。</p>
+                <div class="rd-title">与你条件的匹配情况</div>
+                ${matchRows(r)}
+              </div>
             </div>
           </div>`;
       }).join("");
       $("#resultAvoid").innerHTML = `
-        <div class="av-title">不优先（存在明显更优选项，不代表不能完成）</div>
-        <div class="avoid-chips">${avoidList.map(r => `<span class="avoid-chip" title="${esc(avoidWhy(r, sel))}">${esc(r.m.name)}·${esc(avoidWhy(r, sel))}</span>`).join("")}</div>`;
-      $("#resultNote").textContent = "推荐基于加权评分：项目类型匹配 × 25% + 任务类型 × 20% + 规模/上下文 × 15% + Agent × 15% + 代码 × 10% + 专项 × 10% + 成本 × 5%，并按你的偏好动态调整权重；以中文为主的项目会额外叠加中文能力评分（约 15%）。项目适配度是综合判断，不是官方排名。";
+        <div class="av-title">当前条件下不优先（存在明显更优选项，不代表不能完成）</div>
+        <div class="avoid-chips">${avoidList.map(r => `<span class="avoid-chip" title="${esc(avoidWhy(r))}">${esc(r.m.name)}·${esc(avoidWhy(r))}</span>`).join("")}</div>`;
+      $("#resultNote").textContent = "适配分 = 平台 20% + 项目类型 20% + 任务 20% + 编程语言 15% + Agent 工作方式 15% + 规模 5% + 关注重点 5%，沟通语言作辅助修正；规模未知时弱化规模影响。适配度是选型综合判断，不是官方排名。";
     }, 350);
   }
 
-  /* ═══════════════ 任务速选 ═══════════════ */
+/* ═══════════════ 任务速选 ═══════════════ */
   function initTasks() {
     $("#taskGrid").innerHTML = TASKS.map((t, i) =>
       `<button type="button" class="task-btn" data-task="${t.id}">${esc(t.name)}<span class="kbd">${String(i + 1).padStart(2, "0")}</span></button>`
@@ -1454,6 +1626,12 @@
   }
 
   document.addEventListener("click", (e) => {
+    const dbtn = e.target.closest(".detail-btn");
+    if (dbtn) {
+      const det = document.getElementById(dbtn.dataset.rd);
+      if (det) det.classList.toggle("open");
+      return;
+    }
     const btn = e.target.closest("[data-detail]");
     if (btn) {
       const m = byId(btn.dataset.detail);
