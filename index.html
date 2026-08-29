@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
   AI Coding Model Selector · AI 编程模型项目选型指南
-  数据更新时间：2026-08-27
+  数据更新时间：2026-08-29
+  V12：16 模型（含新增 5 模型：GPT-5.6 Terra / Claude Fable 5 / Claude Sonnet 5 / Gemini 3.7 Flash / GLM-5.3）
 
   Discovery:
     deliverable: Web 工具站（单文件自包含 HTML，交互原型）
@@ -11,12 +12,11 @@
     accent: indigo #5e6ad2 (per linear-app/DESIGN.md)
     craft: typography, color, anti-ai-slop, accessibility-baseline, form-validation,
            laws-of-ux, animation-discipline, state-coverage, typography-hierarchy
-    V2 (2026-08-27): 新增 GLM-5.3 Flash（Z.ai / 智谱，2026-08-26 发布），
-          全站接入：模型卡 / 详情 / 推荐器 / 任务表 / 热力图 / 对比 / 成本；
-          新增项目类型：Browser/Computer Use、截图→UI 还原；新增任务：截图还原、Browser 自动化。
-    V3 (2026-08-27): 选择器新增「项目主要语言」（中文/英文/混合）因子（中文 +15% 权重）；
-          推荐区空态/加载态压缩；默认改为浅色模式。
-    V4 (2026-08-27): Hero 压缩（单行标题、留白减半），页边距加宽（容器 1120px、动态 clamp 边距）。
+    V12 (2026-08-29): 新增 5 个主流模型 GPT-5.6 Terra / Claude Fable 5 / Claude Sonnet 5 / Gemini 3.7 Flash / GLM-5.3，复用现有 8 维选型引擎
+          （平台 20%·类型 20%·任务 20%·语言 15%·Agent 15%·规模 5%·关注 5%），补齐 platformFit / LANGUAGE_FIT / 任务映射；
+          新增模型数量 11→16，场景适配度与官方 Benchmark 严格分离，价格/Context 绑定具体版本。
+    V11 (2026-08-28): DeepSeek V4 数据修正——版本化 Pro-0813 GA / Flash-0731 Beta，9 项 Benchmark，补齐 Context/价格/定位，
+          C 抑制重构（无 S/A 背书时才压分），推荐 Case A-D 通过。
     V10 (2026-08-28): 筛选系统重构——8 维筛选（平台/类型/规模/任务/编程语言/Agent 工作方式/
           沟通语言/关注重点）；新增编程语言多选 + languageFit 18 语言适配矩阵、stability 维度、
           Agent 三档工作方式 + 任务持续时间、关注重点限选 2；适配分引擎改为
@@ -34,6 +34,9 @@
     V5 (2026-08-27): 白天模式切换为「青瓷绿」色板（底 #F4F7F6 / 卡片 #FFFFFF /
           主色 #0F7B6C / 淡底 #E2F2EE / 文字 #17211D）；新增 --accent-fill token，
           雷达图填充与 hero 光晕改走主题变量；深色模式维持 Linear 靓蓝不变。
+    V2 (2026-08-27): 新增 GLM-5.3 Flash（Z.ai / 智谱，2026-08-26 发布），
+          全站接入：模型卡 / 详情 / 推荐器 / 任务表 / 热力图 / 对比 / 成本；
+          新增项目类型：Browser/Computer Use、截图→UI 还原；新增任务：截图还原、Browser 自动化。
 
   font-stack: Inter（依据 linear-app/DESIGN.md 明示，先于 craft 黑名单）
   项目适配度是综合判断，不是官方排名；benchmark 来自 PRD 标注的官方/第三方来源，不同 harness 不可严格横向比较。
@@ -558,11 +561,11 @@
     <!-- ═══ Hero ═══ -->
     <section class="section hero" data-od-id="hero" style="padding-bottom: clamp(28px, 4vw, 44px);">
       <div class="container hero-inner">
-        <p class="eyebrow">AI Coding Model Selector · 2026-08</p>
+        <p class="eyebrow">AI Coding Model Selector · 2026-08 · V12 16模型</p>
         <div class="hero-strip">
-          <span class="strip-item"><span class="dot" aria-hidden="true"></span>11 个主流模型纳入比较</span>
+          <span class="strip-item"><span class="dot" aria-hidden="true"></span>16 个主流模型纳入比较</span>
           <span class="strip-item"><span class="dot amber" aria-hidden="true"></span>26 类项目 · 17 类任务</span>
-          <span class="strip-item"><span class="dot" aria-hidden="true"></span>数据更新 2026-08-27</span>
+          <span class="strip-item"><span class="dot" aria-hidden="true"></span>数据更新 2026-08-29</span>
         </div>
       </div>
     </section>
@@ -658,7 +661,7 @@
         <div class="sec-head">
           <span class="sec-num">02 · Model Map</span>
           <h2>模型能力地图</h2>
-          <p>11 个模型家族的能力画像。星级是选型层面的综合判断（1–5），用于导航而非统一 Benchmark 实测；每个模型都同时给出"最适合"与"不优先"，点击卡片可查看完整规格。</p>
+          <p>16 个模型家族的能力画像。星级是选型层面的综合判断（1–5），用于导航而非统一 Benchmark 实测；每个模型都同时给出"最适合"与"不优先"，点击卡片可查看完整规格。</p>
         </div>
         <div class="model-grid" id="modelGrid"></div>
       </div>
@@ -785,7 +788,7 @@
             <h3 style="font-size: 16px; font-weight: 590; margin-bottom: 6px;">API 标准价格</h3>
             <p style="font-size: 12.5px; color: var(--fg-4); margin-bottom: 18px;">按 1M tokens 计价，仅收录官方已公布的定价；深色条为输入、浅色条为输出。</p>
             <div class="cost-bars" id="costBars"></div>
-            <p style="font-size: 12px; color: var(--fg-4); margin-top: 16px;">DeepSeek V4 采用峰谷定价：图示为峰值口径（Pro $1.32/$3.96、Flash $0.22/$0.66，非峰值减半）；Claude Opus 5 超 200K 提示词有 premium 档；GLM-5.3 Flash 为 Z.ai 限时 5 折价（2026-09-09 截止），以官方价格页实时数据为准。</p>
+            <p style="font-size: 12px; color: var(--fg-4); margin-top: 16px;">GPT-5.6 Terra $2/$12、Claude Sonnet 5 $2/$10、Gemini 3.7 Flash 介绍价 $0.75/$3.75（2026-12-31 后 $1.50/$7.50）；DeepSeek V4 峰谷定价峰值口径（Pro $1.32/$3.96、Flash $0.22/$0.66，非峰值减半）；Claude Opus 5 超 200K 提示词有 premium 档；GLM-5.3 Flash 为 Z.ai 限时 5 折价（2026-09-09 截止），以官方价格页实时数据为准。Fable 5 / GLM-5.3 价格未在本轮收录。</p>
           </div>
           <div class="panel">
             <h3 style="font-size: 16px; font-weight: 590; margin-bottom: 6px;">公开 Benchmark 摘录</h3>
@@ -799,7 +802,7 @@
           </div>
         </div>
         <div class="note-box" style="margin-top: var(--gap-lg);">
-          <b>资料来源：</b>OpenAI GPT-5.6 官方模型页与发布资料、DeepSeek 官方 API 文档与价格页、xAI Grok 4.6 官方发布与开发文档、Meta Muse Spark 1.2 第三方 Benchmark 汇总（smartscope.blog）、Kimi K3 官方技术博客、Z.ai GLM-5.3 Flash 官方博客与模型文档（z.ai/blog/glm-5.3-flash、docs.z.ai、zcode.z.ai）。每条外部事实保留来源字段，详见各模型详情。
+          <b>资料来源：</b>OpenAI GPT-5.6（Terra/Sol/Luna）官方模型页与发布资料、Anthropic Claude Fable 5 / Sonnet 5 官方发布页、Google Gemini 3.7 Flash 官方模型文档、DeepSeek 官方 API 文档与价格页、xAI Grok 4.6 官方发布与开发文档、Meta Muse Spark 1.2 第三方 Benchmark 汇总（smartscope.blog）、Kimi K3 官方技术博客、Z.ai GLM-5.3 / GLM-5.3 Flash 官方博客与模型文档（z.ai/blog/glm-5.3-flash、docs.z.ai、zcode.z.ai）。V12 新增 5 模型场景适配度为网站内部评分（非官方 Benchmark），官方 Benchmark 单独展示并绑定模型版本/来源。每条外部事实保留来源字段，详见各模型详情。
         </div>
       </div>
     </section>
@@ -809,7 +812,7 @@
     <div class="container pagefoot-inner">
       <div>
         <span style="font-weight: 590; color: var(--fg-3);">AI Coding Model Selector</span>
-        <p class="foot-note">"项目适配度"是综合判断，不是官方排名。"不优先"表示存在明显更优选项，不代表模型不能完成任务。模型版本与价格快速变化，数据更新于 2026-08-27。</p>
+        <p class="foot-note">"项目适配度"是综合判断，不是官方排名。"不优先"表示存在明显更优选项，不代表模型不能完成任务。模型版本与价格快速变化，数据更新于 2026-08-29（V12 新增 5 模型：Terra / Fable 5 / Sonnet 5 / Gemini 3.7 Flash / GLM-5.3）。</p>
       </div>
       <div style="text-align: right; display: grid; gap: 6px;">
         <span>核心页面：选择器 / 模型地图 / 对比 / 热力图</span>
@@ -1003,36 +1006,111 @@
         { label: "HLE w/ Tools", value: "55.3", src: "Z.ai 官方" }
       ],
       notes: "2026-08-26 发布的 GLM-5 系列首个原生多模态 MoE（约 320B 总参数 / 18B 激活），重点优化长上下文推理、Coding 与 Agent 任务。官方价格 Input $0.15 / Cached Input $0.03 / Output $0.50（每 1M tokens；限时优惠以官方价格页实时数据为准）。定位是面向 Agent、长上下文和多模态开发场景的高性价比主力，不是\"便宜版 GLM-5\"；适合大型 Repo、Long-Horizon 任务、Screenshot-to-Code 与 Browser/Computer Use 闭环。"
+    },
+    {
+      id: "terra56", name: "GPT-5.6 Terra", provider: "OpenAI", tier: "A",
+      version: "GPT-5.6-Terra", status: "ga", statusLabel: "GA", releaseDate: "2026-08-26",
+      positioning: "高质量 + 成本平衡型 Coding / Agent——质量、成本和速度均衡的主力模型",
+      tags: ["质量/成本平衡", "全栈", "Agent", "Terminal"],
+      platformFit: { ios: 88, macos: 90, android: 88, web: 94, backend: 94, desktop: 90, crossplatform: 93, agent: 95, clisystem: 94, fullstack: 94 },
+      stability: 92,
+      caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 5, iosMac: 4, systems: 4, chinese: 4, speed: 4, cost: 5 },
+      context: "1.05M", maxOutput: "128K", priceIn: 2, priceOut: 12,
+      best: ["中大型 Web", "SaaS", "企业软件", "Agent", "大型 Repo", "Debug / 重构", "Terminal", "全栈"],
+      avoid: ["极简单 CRUD", "极度成本敏感的超大规模批量任务"],
+      benchmarks: [
+        { label: "Coding Agent Index v1.1", value: "77.4", src: "OpenAI 官方 · Terra" },
+        { label: "SWE-Bench Pro", value: "63.4%", src: "OpenAI 官方 · Terra" },
+        { label: "DeepSWE v1.1", value: "69.6%", src: "OpenAI 官方 · Terra" },
+        { label: "Terminal-Bench 2.1", value: "87.4%", src: "OpenAI 官方 · Terra" }
+      ],
+      notes: "GPT-5.6 系列平衡档（Sol / Terra / Luna 三档中的 Terra），高质量与成本平衡。1.05M Context / 128K Max Output，支持 none/low/medium/high/xhigh/max 多档 Reasoning，Functions / Web Search / File Search / Computer Use，Responses API。官方定价 $2 / $12 每 1M tokens。场景适配度：Coding 92 / Debug 92 / Refactor 91 / Agent 92 / Terminal 93 / Large Repo 92 / Frontend 92。"
+    },
+    {
+      id: "fable5", name: "Claude Fable 5", provider: "Anthropic", tier: "S",
+      version: "Claude-Fable-5", status: "ga", statusLabel: "GA",
+      positioning: "顶级复杂工程 / 长程 Agent / 高难度 Coding——极限复杂工程旗舰",
+      tags: ["极限复杂工程", "长程 Agent", "大型 Repo", "深度 Debug"],
+      platformFit: { ios: 94, macos: 96, android: 93, web: 96, backend: 98, desktop: 96, crossplatform: 96, agent: 100, clisystem: 98, fullstack: 97 },
+      stability: 96,
+      caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 5, iosMac: 5, systems: 5, chinese: 4, speed: 4, cost: 3 },
+      context: "未公布", maxOutput: "未公布", priceIn: null, priceOut: null,
+      best: ["超大型 Repo", "复杂 Agent", "大型重构", "复杂 Debug", "架构设计", "长时间自主开发", "高难度工程"],
+      avoid: ["简单 CRUD", "大规模低成本批量任务", "极度成本敏感项目"],
+      benchmarks: [],
+      notes: "Anthropic Claude 5 / Fable 旗舰档，定位极限复杂工程 / 长程 Agent。核心能力：复杂 Coding、大型 Repo、长期 Agent、深度 Debug、架构设计、复杂重构、多步骤工具调用、视觉理解。场景适配度：Coding 99 / Debug 99 / Refactor 99 / Architecture 98 / Agent 100 / Terminal 98 / Large Repo 100 / Frontend 95。"
+    },
+    {
+      id: "sonnet5", name: "Claude Sonnet 5", provider: "Anthropic", tier: "A",
+      version: "Claude-Sonnet-5", status: "ga", statusLabel: "GA",
+      positioning: "高质量 + 高速度 + 成本平衡型 Agent Coding 主力",
+      tags: ["高质量主力", "高速度", "成本平衡", "Agent Coding"],
+      platformFit: { ios: 93, macos: 95, android: 92, web: 97, backend: 96, desktop: 94, crossplatform: 96, agent: 99, clisystem: 97, fullstack: 97 },
+      stability: 93,
+      caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 5, iosMac: 5, systems: 4, chinese: 5, speed: 5, cost: 5 },
+      context: "未公布", maxOutput: "未公布", priceIn: 2, priceOut: 10,
+      best: ["Web", "全栈", "SaaS", "Agent", "企业软件", "Claude Code", "大型 Repo", "Browser 自动化", "Code Review", "重构"],
+      avoid: ["超大型纯代码 Repo 长期重构（优先 Fable）", "极复杂系统底层"] ,
+      benchmarks: [],
+      notes: "Anthropic Claude 5 / Sonnet 主力档，高质量、高速度、成本平衡。官方定价 $2 / $10 每 1M tokens。核心能力：Coding / Agent / Terminal / Browser / Tool Calling / Debug / Code Review / Refactor / Web / 企业软件 / 长任务。场景适配度：Coding 96 / Debug 96 / Refactor 95 / Agent 98 / Terminal 97 / Large Repo 96 / Frontend 95。"
+    },
+    {
+      id: "gemini37flash", name: "Gemini 3.7 Flash", provider: "Google", tier: "A",
+      version: "gemini-3.7-flash", status: "ga", statusLabel: "GA",
+      positioning: "高速 + 多模态 + 性价比 Coding / Agent Workhorse——Web/UI/Browser 重点模型",
+      tags: ["多模态", "高速", "高性价比", "Web/UI", "Browser Use"],
+      platformFit: { ios: 86, macos: 88, android: 89, web: 99, backend: 91, desktop: 93, crossplatform: 94, agent: 97, clisystem: 89, fullstack: 94 },
+      stability: 90,
+      caps: { reasoning: 4, agent: 5, repo: 4, context: 5, frontend: 5, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
+      context: "1,048,576 tokens", maxOutput: "65,536 tokens", priceIn: 0.75, priceOut: 3.75,
+      best: ["Web", "Frontend", "SaaS", "截图 → UI", "Browser Automation", "多模态 Agent", "快速 MVP", "高频 Coding"],
+      avoid: ["极复杂 Swift / macOS 底层 Debug", "极复杂 C / C++ 系统工程", "超大型纯代码 Repo 长期重构"],
+      benchmarks: [],
+      notes: "Google Gemini 3 / Flash 高速多模态 Workhorse。1,048,576 tokens Context / 65,536 Max Output，支持 low/medium/high Thinking，输入支持 Text/Image/Video/Audio/PDF，Tools：Code Execution / Computer Use(Preview)/ File Search / Function Calling / Search Grounding 等。介绍价 $0.75 / $3.75 每 1M（2026-12-31 后 $1.50 / $7.50）。场景适配度：Frontend 98 / Multimodal 100 / Agent 95 / Coding 93 / 性价比 98 / 速度 98。SaaS 98 / Browser 自动化 99 / 截图→UI 100。"
+    },
+    {
+      id: "glm53full", name: "GLM-5.3", provider: "Z.ai", tier: "S",
+      version: "GLM-5.3", status: "ga", statusLabel: "GA · 旗舰", releaseDate: "2026-08-26",
+      positioning: "开放权重旗舰 Coding / 长程 Agent——中文 + 开放权重 + 长程 Coding 旗舰",
+      tags: ["开放权重", "中文", "长程 Agent", "旗舰"],
+      platformFit: { ios: 82, macos: 84, android: 88, web: 94, backend: 97, desktop: 89, crossplatform: 93, agent: 99, clisystem: 98, fullstack: 94 },
+      stability: 93,
+      caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 5, chinese: 5, speed: 4, cost: 5 },
+      context: "未公布", maxOutput: "未公布", priceIn: null, priceOut: null,
+      best: ["大型 Repo", "Agent", "Terminal", "企业软件", "后端", "中文 Coding", "复杂工程", "长时间自主任务", "开放权重 / 私有化"],
+      avoid: ["极致前端视觉设计", "纯截图 → UI", "极低延迟简单任务"],
+      benchmarks: [],
+      notes: "Z.ai GLM-5.3 开放权重旗舰，相比 GLM-5.2 在 Z.ai Code Bench 提升约 50%。核心能力：复杂 Coding / Long Horizon Agent / 大型 Repo / Refactor / Terminal / Tool Calling / 中文 Coding / 长上下文。场景适配度：Coding 95 / Debug 94 / Refactor 94 / Agent 98 / Terminal 97 / Large Repo 97 / 中文 98 / 性价比 95。SaaS 95 / ETL 96 / 爬虫 96 / 企业软件 98。"
     }
   ];
 
   const PROJECTS = [
-    { id: "ios", name: "iOS App", desc: "原生 iOS 应用", recs: { sol56: "S", opus5: "A", grok46: "B", dsv4flash: "C" }, reason: "Apple API、复杂状态和工程一致性要求高" },
-    { id: "macos", name: "macOS App", desc: "原生 macOS 应用", recs: { grok46: "S", sol56: "A", opus5: "B", dsv4flash: "C" }, reason: "系统 API、权限、文件系统、原生能力" },
-    { id: "swiftui", name: "SwiftUI", desc: "SwiftUI 界面开发", recs: { sol56: "S", opus5: "A", grok46: "B", luna56: "C" }, reason: "UI 状态 + Apple Framework 组合复杂" },
-    { id: "nextjs", name: "Next.js 网站", desc: "Next.js 全栈网站", recs: { grok45: "S", glm53: "A", luna56: "A", sol56: "B", opus5: "C" }, reason: "快速 UI、全栈脚手架、迭代效率" },
-    { id: "react-dash", name: "React Dashboard", desc: "React 数据面板", recs: { grok45: "S", luna56: "A", sol56: "B", opus5: "C" }, reason: "前端生成速度和 UI 迭代最重要" },
-    { id: "saas-mvp", name: "SaaS MVP", desc: "SaaS 从 0 到 1", recs: { grok45: "S", glm53: "A", luna56: "A", dsv4flash: "A", sol56: "B", opus5: "C" }, reason: "从 0 到 1 速度比极限推理更重要" },
-    { id: "saas-large", name: "大型 SaaS", desc: "规模化 SaaS 产品", recs: { opus5: "S", sol56: "A", glm53: "A", dsv4pro: "A", grok46: "B", dsv4flash: "C" }, reason: "架构、模块边界、长期维护" },
-    { id: "legacy-refactor", name: "老项目重构", desc: "存量系统重构", recs: { opus5: "S", grok46: "A", dsv4pro: "B", sol56: "B", grok45: "C" }, reason: "需要理解历史代码和隐性依赖" },
-    { id: "big-repo", name: "大型 Repo 分析", desc: "大型代码库分析", recs: { muse12: "S", glm53: "A", opus5: "B", kimi3: "B", luna56: "C" }, reason: "代码量巨大，长上下文价值高" },
-    { id: "bulk-refactor", name: "大批量重构", desc: "跨文件批量改造", recs: { muse12: "S", glm53: "A", dsv4flash: "A", luna56: "B", opus5: "C" }, reason: "需要大量文件操作且成本敏感" },
-    { id: "rust", name: "Rust", desc: "Rust 系统开发", recs: { grok46: "S", grok45: "A", sol56: "B", dsv4flash: "C" }, reason: "系统能力、类型系统、性能推理" },
-    { id: "cpp", name: "C/C++", desc: "C/C++ 开发", recs: { grok46: "S", grok45: "A", sol56: "B", luna56: "C" }, reason: "指针、并发、内存和系统级问题" },
-    { id: "python", name: "Python", desc: "Python 开发", recs: { dsv4pro: "S", dsv4flash: "A", glm53: "B", luna56: "B", opus5: "C" }, reason: "大量常规任务不需要顶级模型" },
-    { id: "nodejs", name: "Node.js", desc: "Node 后端 / 全栈", recs: { grok45: "S", luna56: "A", glm53: "B", dsv4flash: "B", opus5: "C" }, reason: "快速 API、全栈与脚手架" },
-    { id: "java", name: "Java / Spring", desc: "企业级 Java 工程", recs: { sol56: "S", opus5: "A", dsv4pro: "B", grok45: "C" }, reason: "企业工程、架构、规范" },
-    { id: "cli", name: "CLI 工具", desc: "命令行工具", recs: { grok45: "S", grok46: "A", glm53: "B", dsv4flash: "B", opus5: "C" }, reason: "快速迭代和终端效率" },
-    { id: "devops", name: "DevOps", desc: "运维与 CI/CD", recs: { sol56: "S", grok46: "A", opus5: "B", grok45: "C" }, reason: "Shell、Docker、CI/CD、排障" },
-    { id: "agent", name: "AI Agent", desc: "自主智能体开发", recs: { opus5: "S", glm53: "A", grok46: "A", dsv4flash: "A", muse12: "B", luna56: "C" }, reason: "需要计划、工具调用、自纠错" },
-    { id: "crawler", name: "爬虫 / 数据采集", desc: "爬虫与采集", recs: { dsv4flash: "S", luna56: "A", dsv4pro: "B", opus5: "C" }, reason: "大量重复 Coding 和数据处理" },
-    { id: "crud", name: "CRUD 后台", desc: "增删改查后台", recs: { dsv4flash: "S", luna56: "A", grok45: "B", opus5: "C" }, reason: "任务结构清晰，不需极限推理" },
-    { id: "data-script", name: "数据处理脚本", desc: "数据处理 / ETL", recs: { dsv4flash: "S", dsv4pro: "A", luna56: "B", opus5: "C" }, reason: "成本效率优先" },
-    { id: "debug-hard", name: "复杂 Debug", desc: "疑难问题排查", recs: { grok46: "S", opus5: "A", dsv4pro: "B", sol56: "B", grok45: "C" }, reason: "假设验证和根因分析重要" },
-    { id: "security", name: "安全敏感工程", desc: "安全关键系统", recs: { sol56: "S", opus5: "A", grok46: "B", glm53: "C", luna56: "C" }, reason: "对错误和边界条件更敏感" },
-    { id: "chinese-biz", name: "中文业务系统", desc: "中文业务系统", recs: { kimi3: "S", glm52: "A", glm53: "A", sol56: "B", grok45: "C" }, reason: "中文业务语义和国内生态" },
-    { id: "browser-automation", name: "Browser / Computer Use", desc: "浏览器与电脑自动化", recs: { glm53: "S", sol56: "A", grok46: "B", luna56: "C" }, reason: "Browser Use + 视觉反馈 + 工具调用闭环" },
-    { id: "ui-clone", name: "截图 → UI 还原", desc: "Screenshot-to-Code", recs: { glm53: "S", grok45: "A", sol56: "B", dsv4flash: "C" }, reason: "原生多模态，视觉理解与前端生成结合" }
+    { id: "ios", name: "iOS App", desc: "原生 iOS 应用", recs: { sol56: "S", opus5: "A", fable5: "A", sonnet5: "B", grok46: "B", terra56: "B", gemini37flash: "C", dsv4flash: "C" }, reason: "Apple API、复杂状态和工程一致性要求高" },
+    { id: "macos", name: "macOS App", desc: "原生 macOS 应用", recs: { grok46: "S", fable5: "A", sol56: "A", sonnet5: "A", opus5: "B", terra56: "B", gemini37flash: "C", dsv4flash: "C" }, reason: "系统 API、权限、文件系统、原生能力" },
+    { id: "swiftui", name: "SwiftUI", desc: "SwiftUI 界面开发", recs: { sol56: "S", fable5: "A", opus5: "A", sonnet5: "B", grok46: "B", terra56: "B", luna56: "C", gemini37flash: "C" }, reason: "UI 状态 + Apple Framework 组合复杂" },
+    { id: "nextjs", name: "Next.js 网站", desc: "Next.js 全栈网站", recs: { gemini37flash: "S", sonnet5: "S", grok45: "S", terra56: "A", glm53: "A", luna56: "A", sol56: "B", fable5: "B", glm53full: "B", opus5: "C" }, reason: "快速 UI、全栈脚手架、迭代效率" },
+    { id: "react-dash", name: "React Dashboard", desc: "React 数据面板", recs: { gemini37flash: "S", sonnet5: "A", grok45: "S", terra56: "A", luna56: "A", sol56: "B", glm53full: "B", opus5: "C" }, reason: "前端生成速度和 UI 迭代最重要" },
+    { id: "saas-mvp", name: "SaaS MVP", desc: "SaaS 从 0 到 1", recs: { sonnet5: "S", terra56: "S", gemini37flash: "S", grok45: "S", glm53: "A", luna56: "A", dsv4flash: "A", glm53full: "A", sol56: "B", opus5: "C" }, reason: "从 0 到 1 速度比极限推理更重要" },
+    { id: "saas-large", name: "大型 SaaS", desc: "规模化 SaaS 产品", recs: { fable5: "A", sonnet5: "S", terra56: "S", gemini37flash: "S", opus5: "S", glm53full: "S", sol56: "A", glm53: "A", dsv4pro: "A", grok46: "B", dsv4flash: "C" }, reason: "架构、模块边界、长期维护" },
+    { id: "legacy-refactor", name: "老项目重构", desc: "存量系统重构", recs: { fable5: "S", opus5: "S", sonnet5: "A", terra56: "A", grok46: "A", glm53full: "A", dsv4pro: "B", sol56: "B", gemini37flash: "C", grok45: "C" }, reason: "需要理解历史代码和隐性依赖" },
+    { id: "big-repo", name: "大型 Repo 分析", desc: "大型代码库分析", recs: { fable5: "S", muse12: "S", glm53full: "S", sonnet5: "S", terra56: "S", glm53: "A", opus5: "B", kimi3: "B", gemini37flash: "B", luna56: "C" }, reason: "代码量巨大，长上下文价值高" },
+    { id: "bulk-refactor", name: "大批量重构", desc: "跨文件批量改造", recs: { fable5: "S", muse12: "S", glm53full: "S", sonnet5: "S", terra56: "S", glm53: "A", dsv4flash: "A", luna56: "B", opus5: "C", gemini37flash: "C" }, reason: "需要大量文件操作且成本敏感" },
+    { id: "rust", name: "Rust", desc: "Rust 系统开发", recs: { grok46: "S", fable5: "A", grok45: "A", terra56: "B", sonnet5: "B", sol56: "B", dsv4flash: "C", gemini37flash: "C" }, reason: "系统能力、类型系统、性能推理" },
+    { id: "cpp", name: "C/C++", desc: "C/C++ 开发", recs: { grok46: "S", fable5: "A", grok45: "A", terra56: "B", sonnet5: "B", sol56: "B", luna56: "C", gemini37flash: "C" }, reason: "指针、并发、内存和系统级问题" },
+    { id: "python", name: "Python", desc: "Python 开发", recs: { dsv4pro: "S", glm53full: "S", terra56: "S", dsv4flash: "A", sonnet5: "A", glm53: "B", luna56: "B", gemini37flash: "B", opus5: "C" }, reason: "大量常规任务不需要顶级模型" },
+    { id: "nodejs", name: "Node.js", desc: "Node 后端 / 全栈", recs: { sonnet5: "S", terra56: "S", grok45: "S", glm53full: "S", luna56: "A", glm53: "B", dsv4flash: "B", fable5: "B", opus5: "C" }, reason: "快速 API、全栈与脚手架" },
+    { id: "java", name: "Java / Spring", desc: "企业级 Java 工程", recs: { sol56: "S", fable5: "S", sonnet5: "S", terra56: "S", glm53full: "S", opus5: "A", dsv4pro: "B", gemini37flash: "C", grok45: "C" }, reason: "企业工程、架构、规范" },
+    { id: "cli", name: "CLI 工具", desc: "命令行工具", recs: { grok45: "S", fable5: "A", grok46: "A", sonnet5: "A", terra56: "A", glm53full: "A", glm53: "B", dsv4flash: "B", opus5: "C" }, reason: "快速迭代和终端效率" },
+    { id: "devops", name: "DevOps", desc: "运维与 CI/CD", recs: { sol56: "S", fable5: "A", terra56: "A", sonnet5: "A", grok46: "A", opus5: "B", glm53full: "B", grok45: "C" }, reason: "Shell、Docker、CI/CD、排障" },
+    { id: "agent", name: "AI Agent", desc: "自主智能体开发", recs: { fable5: "S", sonnet5: "S", opus5: "S", terra56: "S", glm53full: "S", glm53: "A", gemini37flash: "A", grok46: "A", dsv4flash: "A", muse12: "B", luna56: "C" }, reason: "需要计划、工具调用、自纠错" },
+    { id: "crawler", name: "爬虫 / 数据采集", desc: "爬虫与采集", recs: { dsv4flash: "S", glm53full: "S", luna56: "A", terra56: "A", dsv4pro: "B", sonnet5: "B", opus5: "C", gemini37flash: "B" }, reason: "大量重复 Coding 和数据处理" },
+    { id: "crud", name: "CRUD 后台", desc: "增删改查后台", recs: { dsv4flash: "S", terra56: "A", luna56: "A", gemini37flash: "A", grok45: "B", sonnet5: "B", glm53full: "B", opus5: "C" }, reason: "任务结构清晰，不需极限推理" },
+    { id: "data-script", name: "数据处理脚本", desc: "数据处理 / ETL", recs: { dsv4flash: "S", glm53full: "S", dsv4pro: "A", terra56: "A", luna56: "B", sonnet5: "B", opus5: "C" }, reason: "成本效率优先" },
+    { id: "debug-hard", name: "复杂 Debug", desc: "疑难问题排查", recs: { fable5: "S", grok46: "S", opus5: "S", sonnet5: "S", terra56: "S", glm53full: "A", dsv4pro: "B", sol56: "B", gemini37flash: "B", grok45: "C" }, reason: "假设验证和根因分析重要" },
+    { id: "security", name: "安全敏感工程", desc: "安全关键系统", recs: { fable5: "S", sol56: "S", opus5: "A", sonnet5: "A", terra56: "A", grok46: "B", glm53full: "B", glm53: "C", luna56: "C" }, reason: "对错误和边界条件更敏感" },
+    { id: "chinese-biz", name: "中文业务系统", desc: "中文业务系统", recs: { glm53full: "S", kimi3: "S", sonnet5: "A", terra56: "A", glm52: "A", glm53: "A", sol56: "B", grok45: "C", gemini37flash: "C" }, reason: "中文业务语义和国内生态" },
+    { id: "browser-automation", name: "Browser / Computer Use", desc: "浏览器与电脑自动化", recs: { gemini37flash: "S", sonnet5: "S", glm53: "S", terra56: "A", sol56: "A", fable5: "A", grok46: "B", luna56: "C" }, reason: "Browser Use + 视觉反馈 + 工具调用闭环" },
+    { id: "ui-clone", name: "截图 → UI 还原", desc: "Screenshot-to-Code", recs: { gemini37flash: "S", sonnet5: "S", terra56: "S", glm53: "S", glm53full: "A", grok45: "A", sol56: "B", dsv4flash: "C" }, reason: "原生多模态，视觉理解与前端生成结合" }
   ];
 
   const TASKS = [
@@ -1064,7 +1142,10 @@
       grok46: "权限、系统 API 与疑难 Debug 场景优势明显",
       muse12: "适合大型 iOS Repo 与跨模块批量修改",
       luna56: "高频小改动与成本敏感的迭代任务合适",
-      glm53: "长上下文 + 多模态辅助 UI 工作，性价比高"
+      glm53: "长上下文 + 多模态辅助 UI 工作，性价比高",
+      sonnet5: "高质量 Web/全栈与 Code Review，iOS 适配均衡（93）",
+      terra56: "中大型项目工程执行均衡，iOS 适配 88",
+      fable5: "超大型 Repo 与复杂重构，iOS 适配 94"
     },
     macos: {
       sol56: "macOS 工程能力、Terminal 工作流、系统开发和复杂 Debug 均衡，适合主力开发",
@@ -1072,14 +1153,19 @@
       opus5: "深度理解历史代码与隐性依赖，适合重构与架构",
       muse12: "适合大型 macOS Repo / 长 Context / 批量修改",
       luna56: "大批量小改动与自动化脚本的好选择",
-      glm53: "1M Context + Agent 能力，适合长任务与跨模块修改"
+      glm53: "1M Context + Agent 能力，适合长任务与跨模块修改",
+      sonnet5: "macOS 全栈与 Agent 均衡（95），Code Review 强",
+      terra56: "Terminal 与全栈平衡（90），中大型项目首选",
+      fable5: "长程 Agent 与大型重构（96），高难度工程首选"
     },
     android: {
       sol56: "Kotlin / Jetpack Compose / Gradle 工程链路熟悉度高",
       opus5: "多模块 Android 工程的架构与依赖治理能力强",
       grok46: "NDK / 性能问题 / 疑难 Debug 适配好",
       muse12: "大型 Android 仓库的长上下文分析",
-      glm53: "高性价比的 Compose 页面与批处理主力"
+      glm53: "高性价比的 Compose 页面与批处理主力",
+      sonnet5: "Android 全栈与 Agent 均衡（92）",
+      gemini37flash: "Web/多模态衍生的 Android 页面生成（89）"
     },
     web: {
       grok45: "React / Next.js / Tailwind 的 UI 生成速度和脚手架能力最强，Web MVP 首选",
@@ -1087,7 +1173,12 @@
       luna56: "高频页面迭代、组件生成的吞吐与成本平衡好",
       sol56: "工程完整性要求高的 Web 项目首选之一",
       glm53: "Screenshot-to-Code 与视觉闭环还原是差异化优势",
-      muse12: "大型 Web Monorepo 的长上下文分析"
+      muse12: "大型 Web Monorepo 的长上下文分析",
+      sonnet5: "高质量 Web/全栈与 Code Review，Web 适配 97，SaaS 强",
+      terra56: "中大型 Web/SaaS 平衡型主力（94），质量/成本均衡",
+      gemini37flash: "Web 99 + 截图→UI 100 + Browser 99，多模态 Web 首选",
+      fable5: "复杂前端架构与大型 Repo（96），高难度 Web 工程",
+      glm53full: "企业级 Web 与后端结合（94），开放权重"
     },
     backend: {
       opus5: "服务端架构、数据库设计与模块边界把握最强档",
@@ -1095,19 +1186,26 @@
       grok46: "性能排查、底层问题定位优势明显",
       muse12: "大型后端代码库与长任务分析",
       dsv4pro: "常规后端 CRUD、API 与脚本的高性价比选择",
-      glm53: "长上下文微服务改造与批处理主力"
+      glm53: "长上下文微服务改造与批处理主力",
+      terra56: "中大型后端与 Debug/重构平衡（94）",
+      fable5: "超大型后端 Repo 与复杂架构（98）",
+      sonnet5: "企业软件与后端全栈（96），Review 强",
+      glm53full: "中文后端与企业软件旗舰（97），开放权重 + Terminal 98"
     },
     desktop: {
       sol56: "Windows / Linux 桌面端工程链路与打包发布熟悉度高",
       grok46: "系统级集成与疑难 Debug 专家",
       opus5: "大型桌面应用的架构与重构",
-      muse12: "跨模块桌面仓库的长上下文分析"
+      muse12: "跨模块桌面仓库的长上下文分析",
+      sonnet5: "桌面全栈与 Agent（94）"
     },
     crossplatform: {
       sol56: "Flutter / RN / Tauri / Electron 多技术栈的综合工程能力最稳",
       muse12: "跨端代码库体量大时的长上下文利器",
       glm53: "跨平台 UI 还原与长任务的高性价比主力",
-      grok46: "原生桥接与疑难问题专家"
+      grok46: "原生桥接与疑难问题专家",
+      sonnet5: "跨平台全栈与 Code Review（96）",
+      terra56: "跨平台中大型项目平衡（93）"
     },
     agent: {
       opus5: "计划、工具调用、自纠错能力最强档，Agent 首选",
@@ -1115,19 +1213,31 @@
       grok46: "长时间运行 Agent 与复杂工具编排优势明显",
       muse12: "长上下文 Agent 任务（大仓库内自主工作）",
       glm53: "Browser Use / Computer Use 原生支持，Agent 性价比主力",
-      dsv4flash: "成本型 Agent 批量任务的优选"
+      dsv4flash: "成本型 Agent 批量任务的优选",
+      fable5: "极限长程 Agent 100，超大型 Repo 与复杂重构",
+      sonnet5: "高质量 Agent 99，Web/企业软件 Agent 首选",
+      terra56: "平衡型 Agent 95，中大型项目长任务",
+      gemini37flash: "多模态 Agent 97，Browser 99，Web 自动化",
+      glm53full: "开放权重长程 Agent 99，中文 Agent 强"
     },
     clisystem: {
       grok46: "Rust / C / C++ / Shell 与性能优化的最优选，CLI/系统工具第一梯队",
       sol56: "终端工作流与工程执行力强",
       opus5: "底层架构与算法问题把握深",
-      muse12: "大型系统代码库的长上下文分析"
+      muse12: "大型系统代码库的长上下文分析",
+      terra56: "Terminal 94，全栈 CLI 平衡",
+      fable5: "复杂系统工具与重构（98）",
+      sonnet5: "Terminal 97，Code Review 强",
+      glm53full: "Terminal 97-98，中文系统工具与私有化"
     },
     fullstack: {
       opus5: "前后端边界设计一致性强，大型全栈项目首选",
       sol56: "全链路工程执行：客户端到部署",
       muse12: "Monorepo 全栈仓库的长上下文理解",
-      glm53: "全栈场景下的高性价比长任务主力"
+      glm53: "全栈场景下的高性价比长任务主力",
+      sonnet5: "高质量全栈 97，Web/SaaS/Agent 均衡",
+      terra56: "中大型全栈平衡（94），质量/成本兼顾",
+      gemini37flash: "Web 全栈 94 + 多模态，快速 MVP"
     }
   };
   function avoidWhy(r) {
@@ -1254,7 +1364,12 @@
     dsv4flash:{ swift: 82, swiftui: 82, objc: 80, kotlin: 85, java: 89, typescript: 93, javascript: 93, python: 95, rust: 85, go: 89, c: 84, cpp: 84, csharp: 85, php: 88, dart: 84, sql: 91, shell: 88, htmlcss: 92 },
     kimi3:    { swift: 85, swiftui: 86, objc: 82, kotlin: 87, java: 90, typescript: 91, javascript: 91, python: 93, rust: 87, go: 89, c: 85, cpp: 86, csharp: 87, php: 87, dart: 86, sql: 90, shell: 87, htmlcss: 89 },
     glm52:    { swift: 84, swiftui: 84, objc: 82, kotlin: 86, java: 90, typescript: 90, javascript: 90, python: 93, rust: 86, go: 89, c: 85, cpp: 85, csharp: 87, php: 88, dart: 86, sql: 90, shell: 88, htmlcss: 89 },
-    glm53:    { swift: 87, swiftui: 88, objc: 83, kotlin: 88, java: 91, typescript: 95, javascript: 95, python: 95, rust: 89, go: 91, c: 87, cpp: 88, csharp: 88, php: 89, dart: 90, sql: 91, shell: 90, htmlcss: 96 }
+    glm53:    { swift: 87, swiftui: 88, objc: 83, kotlin: 88, java: 91, typescript: 95, javascript: 95, python: 95, rust: 89, go: 91, c: 87, cpp: 88, csharp: 88, php: 89, dart: 90, sql: 91, shell: 90, htmlcss: 96 },
+    terra56: { swift: 92, swiftui: 92, objc: 86, kotlin: 89, java: 92, typescript: 95, javascript: 95, python: 95, rust: 90, go: 92, c: 88, cpp: 88, csharp: 89, php: 88, dart: 88, sql: 91, shell: 91, htmlcss: 94 },
+    fable5:  { swift: 95, swiftui: 95, objc: 89, kotlin: 91, java: 94, typescript: 96, javascript: 96, python: 97, rust: 92, go: 93, c: 90, cpp: 91, csharp: 91, php: 89, dart: 90, sql: 92, shell: 92, htmlcss: 94 },
+    sonnet5: { swift: 93, swiftui: 93, objc: 87, kotlin: 90, java: 93, typescript: 96, javascript: 96, python: 96, rust: 92, go: 92, c: 89, cpp: 90, csharp: 90, php: 89, dart: 89, sql: 91, shell: 92, htmlcss: 95 },
+    gemini37flash: { swift: 85, swiftui: 86, objc: 82, kotlin: 87, java: 89, typescript: 96, javascript: 96, python: 92, rust: 87, go: 89, c: 84, cpp: 85, csharp: 86, php: 87, dart: 87, sql: 89, shell: 88, htmlcss: 98 },
+    glm53full:{ swift: 83, swiftui: 83, objc: 81, kotlin: 85, java: 91, typescript: 92, javascript: 92, python: 96, rust: 88, go: 91, c: 86, cpp: 86, csharp: 87, php: 88, dart: 85, sql: 92, shell: 90, htmlcss: 91 }
   };
   // 平台隐式携带的项目场景（平台负责技术环境，项目类型只留产品形态，去重不失精度）
   const PLATFORM_PROJECT_ALIAS = {
@@ -1579,7 +1694,7 @@
     const opener = document.activeElement;
     window.__modalOpener = opener;
     $("#modalTitle").textContent = m.name;
-    $("#modalSub").textContent = `${m.provider} · ${m.tier === "S" ? "旗舰档" : "主力档"} · 数据更新 2026-08-27`;
+    $("#modalSub").textContent = `${m.provider} · ${m.tier === "S" ? "旗舰档" : "主力档"} · 数据更新 2026-08-29`;
     const capRows = CAP_KEYS.map(([k, label]) =>
       `<div class="cap-row"><span>${label}</span><div class="bar"><span style="width:${m.caps[k] * 20}%"></span></div><span class="n">${m.caps[k]}/5</span></div>`
     ).join("");
