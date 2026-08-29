@@ -785,7 +785,7 @@
             <h3 style="font-size: 16px; font-weight: 590; margin-bottom: 6px;">API 标准价格</h3>
             <p style="font-size: 12.5px; color: var(--fg-4); margin-bottom: 18px;">按 1M tokens 计价，仅收录官方已公布的定价；深色条为输入、浅色条为输出。</p>
             <div class="cost-bars" id="costBars"></div>
-            <p style="font-size: 12px; color: var(--fg-4); margin-top: 16px;">其余模型（Claude Opus 5、GPT-5.6 Sol、DeepSeek 系、Kimi K3、GLM-5.2）官方价格页未在本轮纳入统计，不填数字以免误导。</p>
+            <p style="font-size: 12px; color: var(--fg-4); margin-top: 16px;">DeepSeek V4 采用峰谷定价：图示为峰值口径（Pro $1.32/$3.96、Flash $0.22/$0.66，非峰值减半）；Claude Opus 5 超 200K 提示词有 premium 档；GLM-5.3 Flash 为 Z.ai 限时 5 折价（2026-09-09 截止），以官方价格页实时数据为准。</p>
           </div>
           <div class="panel">
             <h3 style="font-size: 16px; font-weight: 590; margin-bottom: 6px;">公开 Benchmark 摘录</h3>
@@ -844,7 +844,7 @@
       platformFit: { ios: 95, macos: 96, android: 94, web: 95, backend: 99, desktop: 96, crossplatform: 95, agent: 99, clisystem: 97, fullstack: 98 },
       stability: 95,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 5, systems: 4, chinese: 4, speed: 3, cost: 2 },
-      context: "未公布", priceIn: null, priceOut: null,
+      context: "1M tokens", maxOutput: "128K", priceIn: 5, priceOut: 25,
       best: ["大型后端", "复杂 SaaS", "大型 Repo", "老项目重构", "架构设计", "复杂数据库设计", "深度 Debug", "高难度 Agent"],
       avoid: ["简单 CRUD", "简单 Landing Page", "大量重复脚本", "成本敏感的批量任务"],
       benchmarks: [],
@@ -857,7 +857,7 @@
       platformFit: { ios: 98, macos: 98, android: 96, web: 96, backend: 99, desktop: 98, crossplatform: 97, agent: 99, clisystem: 99, fullstack: 99 },
       stability: 94,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 5, systems: 4, chinese: 4, speed: 4, cost: 3 },
-      context: "约 1M 级", priceIn: null, priceOut: null,
+      context: "1.05M", maxOutput: "128K", priceIn: 5, priceOut: 30,
       best: ["复杂工程", "Terminal Agent", "DevOps", "iOS/macOS", "Git / CI/CD", "复杂自动化", "工程级 Debug"],
       avoid: ["极大量简单代码生成", "纯成本敏感任务", "简单 MVP"],
       benchmarks: [],
@@ -870,11 +870,11 @@
       platformFit: { ios: 94, macos: 94, android: 92, web: 97, backend: 97, desktop: 94, crossplatform: 95, agent: 94, clisystem: 96, fullstack: 97 },
       stability: 90,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
-      context: "约 1.05M", priceIn: 0.20, priceOut: 1.20,
+      context: "1.05M", maxOutput: "128K", priceIn: 1, priceOut: 6,
       best: ["高频 Coding", "API / CRUD", "批量代码生成", "测试代码生成", "普通 Debug", "自动化脚本", "成本敏感型 Agent"],
       avoid: ["最复杂的架构问题", "极难根因分析", "超关键生产系统改造"],
       benchmarks: [],
-      notes: "官方 API 显示约 1.05M context、最高 128K 输出；官方定价输入 $0.20 / 1M tokens、输出 $1.20 / 1M tokens。核心竞争力是单位成本与并发效率，不是 Sol 的弱化版。"
+      notes: "官方 API 显示 1.05M context、最高 128K 输出；官方定价输入 $1 / 1M tokens、输出 $6 / 1M tokens。核心竞争力是单位成本与并发效率，不是 Sol 的弱化版。"
     },
     {
       id: "grok46", name: "Grok 4.6", provider: "xAI", tier: "S",
@@ -896,7 +896,7 @@
       platformFit: { ios: 90, macos: 92, android: 90, web: 99, backend: 94, desktop: 92, crossplatform: 93, agent: 94, clisystem: 96, fullstack: 96 },
       stability: 86,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 4, frontend: 5, iosMac: 4, systems: 5, chinese: 3, speed: 5, cost: 4 },
-      context: "未公布", priceIn: null, priceOut: null,
+      context: "500K", maxOutput: "未公布", priceIn: 2, priceOut: 6,
       best: ["Web MVP", "React / Next.js", "Dashboard", "Landing Page", "Node.js", "CLI", "快速原型", "快速 Rust/C++ 开发"],
       avoid: ["超大型老仓库重构", "极复杂数据库架构", "极难生产 Bug"],
       benchmarks: [{ label: "Terminal-Bench 2.1", value: "81.6", src: "Meta 对比数据" }, { label: "DeepSWE 1.1", value: "56.6", src: "Meta 对比数据" }],
@@ -923,11 +923,11 @@
       platformFit: { ios: 90, macos: 90, android: 90, web: 94, backend: 96, desktop: 90, crossplatform: 92, agent: 96, clisystem: 94, fullstack: 96 },
       stability: 92,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 4, cost: 5 },
-      context: "1M tokens", maxOutput: "384K tokens", priceIn: null, priceOut: null,
+      context: "1M tokens", maxOutput: "384K tokens", priceIn: 1.32, priceOut: 3.96,
       best: ["复杂工程", "Debug", "重构", "架构设计", "大型 Repo", "复杂 Agent", "后端系统", "代码审查", "性能优化"],
       avoid: ["极难根因分析（建议切 Opus/GPT-5.6/Grok 4.6）", "Apple 原生开发不作第一选择"],
       benchmarks: [],
-      notes: "DeepSeek-V4-Pro-0813（GA，2026-08-13 发布）：旗舰级 Coding / Agent 高性价比模型，擅长复杂 Coding、Agent、Debug、重构、架构设计与大型 Repo；1M Context / 384K 输出，Tool Calling 与 Codex 工作流支持。来源：DeepSeek 官方 API 文档与 GA 公告。"
+      notes: "DeepSeek-V4-Pro-0813（GA，2026-08-13 发布）：旗舰级 Coding / Agent 高性价比模型，擅长复杂 Coding、Agent、Debug、重构、架构设计与大型 Repo；1M Context / 384K 输出，Tool Calling 与 Codex 工作流支持。来源：DeepSeek 官方 API 文档与 GA 公告；API 定价分峰谷：峰值 $1.32/$3.96、非峰值 $0.66/$1.98（每 1M tokens）。"
     },
     {
       id: "dsv4flash", name: "DeepSeek V4 Flash", provider: "DeepSeek", tier: "A",
@@ -937,7 +937,7 @@
       platformFit: { ios: 86, macos: 86, android: 86, web: 95, backend: 95, desktop: 86, crossplatform: 92, agent: 96, clisystem: 95, fullstack: 96 },
       stability: 90,
       caps: { reasoning: 4, agent: 5, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
-      context: "1M tokens", maxOutput: "384K tokens", priceIn: null, priceOut: null,
+      context: "1M tokens", maxOutput: "384K tokens", priceIn: 0.22, priceOut: 0.66,
       best: ["批量 Coding", "高频 Agent", "Terminal / 自动化", "Web / 后端", "Python / TypeScript / Node", "数据处理", "爬虫", "测试生成", "Codex 工作流", "成本敏感大规模调用"],
       avoid: ["复杂架构 / 大型重构（优先 Opus/GPT-5.6/Grok 4.6/Muse/V4 Pro）", "极难根因分析", "Apple 原生开发不作第一选择"],
       benchmarks: [
@@ -951,7 +951,7 @@
         { label: "DSBench FullStack", value: "68.7", src: "DeepSeek 官方 · V4-Flash-0731" },
         { label: "DSBench Hard", value: "59.6", src: "DeepSeek 官方 · V4-Flash-0731" }
       ],
-      notes: "DeepSeek-V4-Flash-0731（正式版 API / Public Beta，2026-07-31 发布）：高性能、高吞吐的 Coding / Agent 主力，不是能力较弱的 Flash。1M Context / 384K 输出，Tool Calling、Responses API 与 Codex 工作流支持；适合批量开发、Terminal、自动化与高频任务。来源：DeepSeek 官方发布公告与 API 文档。"
+      notes: "DeepSeek-V4-Flash-0731（正式版 API / Public Beta，2026-07-31 发布）：高性能、高吞吐的 Coding / Agent 主力，不是能力较弱的 Flash。1M Context / 384K 输出，Tool Calling、Responses API 与 Codex 工作流支持；适合批量开发、Terminal、自动化与高频任务。来源：DeepSeek 官方发布公告与 API 文档；API 定价分峰谷：非峰值 $0.22/$0.66、峰值翻倍（每 1M tokens）。"
     },
     {
       id: "kimi3", name: "Kimi K3", provider: "Moonshot AI", tier: "A",
@@ -960,7 +960,7 @@
       platformFit: { ios: 88, macos: 88, android: 88, web: 93, backend: 94, desktop: 88, crossplatform: 92, agent: 95, clisystem: 90, fullstack: 94 },
       stability: 90,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 4 },
-      context: "长上下文", priceIn: null, priceOut: null,
+      context: "1M tokens", maxOutput: "未公布", priceIn: 3, priceOut: 15,
       best: ["中文项目", "长上下文项目", "大型 Agent", "大型中文业务系统", "中文需求分析"],
       avoid: ["纯追求最快 Web MVP", "极简单脚本"],
       benchmarks: [
@@ -978,7 +978,7 @@
       platformFit: { ios: 87, macos: 87, android: 89, web: 92, backend: 94, desktop: 88, crossplatform: 92, agent: 96, clisystem: 91, fullstack: 94 },
       stability: 89,
       caps: { reasoning: 4, agent: 5, repo: 4, context: 4, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 5 },
-      context: "未公布", priceIn: null, priceOut: null,
+      context: "1M tokens", maxOutput: "128K", priceIn: 1.4, priceOut: 4.4,
       best: ["中文业务系统", "国内 SaaS", "中文 Agent", "国内工程生态"],
       avoid: ["最前沿系统编程", "极复杂全球化工程"],
       benchmarks: [],
