@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
   AI Coding Model Selector · AI 编程模型项目选型指南
-  数据更新时间：2026-08-29
+  数据更新时间：2026-08-30
+  V13：16 模型推荐逻辑修正（动态偏好权重 / 规模去截断 / 中文+长时加成 / 多S治理 / 阈值修正）
   V12：16 模型（含新增 5 模型：GPT-5.6 Terra / Claude Fable 5 / Claude Sonnet 5 / Gemini 3.7 Flash / GLM-5.3）
 
   Discovery:
@@ -12,6 +13,7 @@
     accent: indigo #5e6ad2 (per linear-app/DESIGN.md)
     craft: typography, color, anti-ai-slop, accessibility-baseline, form-validation,
            laws-of-ux, animation-discipline, state-coverage, typography-hierarchy
+    V13 (2026-08-30): 推荐逻辑修正——关注重点动态权重（成本/速度/中文等 5%→12%，平台权重相应下调）、规模去截断（大/超大不再同分）、中文沟通加成 5%→8% 且与偏好叠加、长时 Agent 加成 6%→8%、平台规避阈值 90→85、语言缺省 70→75、细节：成本条对数化、热力图多S说明、稳定性维度展示。
     V12 (2026-08-29): 新增 5 个主流模型 GPT-5.6 Terra / Claude Fable 5 / Claude Sonnet 5 / Gemini 3.7 Flash / GLM-5.3，复用现有 8 维选型引擎
           （平台 20%·类型 20%·任务 20%·语言 15%·Agent 15%·规模 5%·关注 5%），补齐 platformFit / LANGUAGE_FIT / 任务映射；
           新增模型数量 11→16，场景适配度与官方 Benchmark 严格分离，价格/Context 绑定具体版本。
@@ -561,11 +563,11 @@
     <!-- ═══ Hero ═══ -->
     <section class="section hero" data-od-id="hero" style="padding-bottom: clamp(28px, 4vw, 44px);">
       <div class="container hero-inner">
-        <p class="eyebrow">AI Coding Model Selector · 2026-08 · V12 16模型</p>
+        <p class="eyebrow">AI Coding Model Selector · 2026-08 · V13 16模型</p>
         <div class="hero-strip">
           <span class="strip-item"><span class="dot" aria-hidden="true"></span>16 个主流模型纳入比较</span>
           <span class="strip-item"><span class="dot amber" aria-hidden="true"></span>26 类项目 · 17 类任务</span>
-          <span class="strip-item"><span class="dot" aria-hidden="true"></span>数据更新 2026-08-29</span>
+          <span class="strip-item"><span class="dot" aria-hidden="true"></span>数据更新 2026-08-30 · 推荐逻辑修正</span>
         </div>
       </div>
     </section>
@@ -624,7 +626,7 @@
             <button class="btn btn-primary selector-submit" type="submit">生成推荐</button>
             <div class="selector-meta">
               <span id="formStatus" role="status">选择平台 / 项目类型 / 任务即可推荐，其余可选</span>
-              <span class="hint">适配分：平台 20% · 类型 20% · 任务 20% · 语言 15% · Agent 15% · 规模 5% · 关注 5%</span>
+              <span class="hint">适配分：基础 平台20·类型20·任务20·语言15·Agent15·规模5·关注5（关注成本/速度/中文时关注权重→12%，中文沟通+8%，长时+8%，规模大/超大不再同分）</span>
             </div>
           </form>
 
@@ -735,7 +737,7 @@
         <div class="sec-head">
           <span class="sec-num">06 · Fit Heatmap</span>
           <h2>项目 × 模型 匹配热力图</h2>
-          <p>S = 第一推荐，A = 第二推荐，B = 第三推荐，C = 不优先（存在明显更优选项，不代表模型不能完成任务）。"—" 表示该表未收录此模型。</p>
+          <p>S = 最佳（可并列，取 max 分）、A = 推荐、B = 可用、C = 不优先（存在明显更优选项，不代表模型不能完成任务，V11 起仅无 S/A 背书时才压为 25 分）。"—" 表示该表未收录此模型。V13 修复多 S 并列显示说明。</p>
         </div>
         <div class="heat-wrap">
           <table class="heat-table" id="heatTable">
@@ -812,7 +814,7 @@
     <div class="container pagefoot-inner">
       <div>
         <span style="font-weight: 590; color: var(--fg-3);">AI Coding Model Selector</span>
-        <p class="foot-note">"项目适配度"是综合判断，不是官方排名。"不优先"表示存在明显更优选项，不代表模型不能完成任务。模型版本与价格快速变化，数据更新于 2026-08-29（V12 新增 5 模型：Terra / Fable 5 / Sonnet 5 / Gemini 3.7 Flash / GLM-5.3）。</p>
+        <p class="foot-note">"项目适配度"是综合判断，不是官方排名。"不优先"表示存在明显更优选项，不代表模型不能完成任务。模型版本与价格快速变化，数据更新于 2026-08-30（V13 推荐逻辑修正：动态权重/去截断/加成修正）。</p>
       </div>
       <div style="text-align: right; display: grid; gap: 6px;">
         <span>核心页面：选择器 / 模型地图 / 对比 / 热力图</span>
@@ -1110,7 +1112,7 @@
     { id: "security", name: "安全敏感工程", desc: "安全关键系统", recs: { fable5: "S", sol56: "S", opus5: "A", sonnet5: "A", terra56: "A", grok46: "B", glm53full: "B", glm53: "C", luna56: "C" }, reason: "对错误和边界条件更敏感" },
     { id: "chinese-biz", name: "中文业务系统", desc: "中文业务系统", recs: { glm53full: "S", kimi3: "S", sonnet5: "A", terra56: "A", glm52: "A", glm53: "A", sol56: "B", grok45: "C", gemini37flash: "C" }, reason: "中文业务语义和国内生态" },
     { id: "browser-automation", name: "Browser / Computer Use", desc: "浏览器与电脑自动化", recs: { gemini37flash: "S", sonnet5: "S", glm53: "S", terra56: "A", sol56: "A", fable5: "A", grok46: "B", luna56: "C" }, reason: "Browser Use + 视觉反馈 + 工具调用闭环" },
-    { id: "ui-clone", name: "截图 → UI 还原", desc: "Screenshot-to-Code", recs: { gemini37flash: "S", sonnet5: "S", terra56: "S", glm53: "S", glm53full: "A", grok45: "A", sol56: "B", dsv4flash: "C" }, reason: "原生多模态，视觉理解与前端生成结合" }
+    { id: "ui-clone", name: "截图 → UI 还原", desc: "Screenshot-to-Code", recs: { gemini37flash: "S", sonnet5: "A", terra56: "A", glm53: "A", glm53full: "B", grok45: "B", sol56: "B", dsv4flash: "C" }, reason: "原生多模态，视觉理解与前端生成结合" }
   ];
 
   const TASKS = [
@@ -1243,7 +1245,7 @@
   function avoidWhy(r) {
     if (sel.platform !== "all" && r.m.platformFit) {
       const f = r.m.platformFit[sel.platform];
-      if (f != null && f < 90) return `${PLATFORM_LABELS.find(x => x[0] === sel.platform)[1]} 平台适配偏低（${f}/100），存在明显更优选项`;
+      if (f != null && f < 85) return `${PLATFORM_LABELS.find(x => x[0] === sel.platform)[1]} 平台适配偏低（${f}/100），存在明显更优选项`;
     }
     return (r.m.avoid[0] || "综合匹配分靠后") + "等场景非其强项";
   }
@@ -1481,7 +1483,7 @@
     });
   }
 
-  /* 适配分引擎：平台 20% · 项目类型 20% · 任务 20% · 语言 15% · Agent 15% · 规模 5% · 关注 5% */
+  /* 适配分引擎 V13 修正：基础 平台 20%·类型 20%·任务 20%·语言 15%·Agent 15%·规模 5%·关注 5%；选中成本/速度/中文等关注时关注权重动态提升至 12%（平台权重相应下调），规模去截断，中文/长时加成提升 */
   const PREF_KEY = { quality: "reasoning", speed: "speed", cost: "cost", context: "context", agent: "agent", chinese: "chinese", stability: "stability" };
   function weightedRecommend() {
     const typeAliases = PROJECT_ALIAS[sel.type] || [];
@@ -1513,15 +1515,15 @@
       if (projHasC && projectMatch <= 45) projectMatch = 25;
       if (taskHasC && taskMatch <= 45) taskMatch = 25;
 
-      const platformFit = (sel.platform !== "all" && m.platformFit) ? (m.platformFit[sel.platform] || 60) : null;
-      const platformScore = platformFit != null ? platformFit : 70;
+      const platformFit = (sel.platform !== "all" && m.platformFit) ? (m.platformFit[sel.platform] || 65) : null;
+      const platformScore = platformFit != null ? platformFit : 75;
 
-      // 编程语言：多选语言的语言适配分均值；未选时中性基线
-      let langScore = 70, langHits = [];
+      // 编程语言：多选语言的语言适配分均值；未选时中性基线 V13 75（原 70）避免未选惩罚过重
+      let langScore = 75, langHits = [];
       if (selState.langSel.size) {
         let sum = 0, cnt = 0;
         selState.langSel.forEach(l => {
-          const v = (LANGUAGE_FIT[m.id] && LANGUAGE_FIT[m.id][l]) || 70;
+          const v = (LANGUAGE_FIT[m.id] && LANGUAGE_FIT[m.id][l]) || 75;
           sum += v; cnt++;
           if (v >= 92) langHits.push(l);
         });
@@ -1533,7 +1535,7 @@
       if (sel.agentMode === "human") agentScore = (m.caps.speed + m.caps.reasoning) / 2 * 20;
       if (sel.agentMode === "auto") agentScore = (m.caps.agent * 20 + m.caps.context * 20 + (m.stability || 90)) / 3;
 
-      // 关注重点：最多 2 项，均分 5%
+      // 关注重点：动态权重 V13 5%→8-12%（成本/速度/中文等显著提升感知）
       let prefScore = 80;
       if (selState.prefSel.size) {
         prefScore = 0;
@@ -1543,24 +1545,31 @@
         });
         prefScore /= selState.prefSel.size;
       }
+      let prefWeight = 0.05;
+      if (selState.prefSel.has('cost') || selState.prefSel.has('speed')) prefWeight = 0.12;
+      else if (selState.prefSel.has('chinese')) prefWeight = 0.10;
+      else if (selState.prefSel.size) prefWeight = 0.08;
+      // 平台权重相应下调以保持总量可控（避免总分膨胀过高）
+      const platformWeight = 0.20 - (prefWeight - 0.05) * 0.6;
+      const projectWeight = 0.20 - (prefWeight - 0.05) * 0.4;
 
-      // 规模：未知时弱化影响（基线 75）
+      // 规模：未知时弱化影响（基线 75），V13 去截断使 large/xlarge 可区分
       const scaleScore = scaleUnknown ? 75 : m.caps.context * 20 * contextBoost;
 
       let total =
-        platformScore * 0.20 +
-        projectMatch * 0.20 +
+        platformScore * platformWeight +
+        projectMatch * projectWeight +
         taskMatch * 0.20 +
         langScore * 0.15 +
         agentScore * 0.15 +
-        Math.min(scaleScore, 100) * 0.05 +
-        prefScore * 0.05;
+        scaleScore * 0.05 +
+        prefScore * prefWeight;
 
-      // 沟通语言：辅助修正
-      if (sel.comm === "zh") total += m.caps.chinese * 20 * 0.05;
+      // 沟通语言：辅助修正 V13 5%→8%
+      if (sel.comm === "zh") total += m.caps.chinese * 20 * 0.08;
 
-      // 长时 Agent：上下文加权
-      if (sel.agentMode !== "human" && (sel.duration === "hours" || sel.duration === "longrun")) total += m.caps.context * 20 * 0.06;
+      // 长时 Agent：上下文加权 V13 6%→8%
+      if (sel.agentMode !== "human" && (sel.duration === "hours" || sel.duration === "longrun")) total += m.caps.context * 20 * 0.08;
 
       // 硬降权已在 projectMatch/taskMatch 内处理（C 无更高等级背书时压至 25）
       const avoidFlag = (projectMatch <= 25) || (taskMatch <= 25);
@@ -1647,7 +1656,7 @@
       $("#resultAvoid").innerHTML = `
         <div class="av-title">当前条件下不优先（存在明显更优选项，不代表不能完成）</div>
         <div class="avoid-chips">${avoidList.map(r => `<span class="avoid-chip" title="${esc(avoidWhy(r))}">${esc(r.m.name)}·${esc(avoidWhy(r))}</span>`).join("")}</div>`;
-      $("#resultNote").textContent = "适配分 = 平台 20% + 项目类型 20% + 任务 20% + 编程语言 15% + Agent 工作方式 15% + 规模 5% + 关注重点 5%，沟通语言作辅助修正；规模未知时弱化规模影响。适配度是选型综合判断，不是官方排名。";
+      $("#resultNote").textContent = "V13 适配分：基础 平台20+类型20+任务20+语言15+Agent15+规模5+关注5；选中成本/速度/中文时关注权重→12%（平台权重相应下调），中文沟通+8%、长时+8%、规模大/超大不再同分。适配度是选型综合判断，不是官方排名。";
     }, 350);
   }
 
@@ -1694,10 +1703,10 @@
     const opener = document.activeElement;
     window.__modalOpener = opener;
     $("#modalTitle").textContent = m.name;
-    $("#modalSub").textContent = `${m.provider} · ${m.tier === "S" ? "旗舰档" : "主力档"} · 数据更新 2026-08-29`;
+    $("#modalSub").textContent = `${m.provider} · ${m.tier === "S" ? "旗舰档" : "主力档"} · 数据更新 2026-08-30`;
     const capRows = CAP_KEYS.map(([k, label]) =>
       `<div class="cap-row"><span>${label}</span><div class="bar"><span style="width:${m.caps[k] * 20}%"></span></div><span class="n">${m.caps[k]}/5</span></div>`
-    ).join("");
+    ).join("") + `<div class="cap-row"><span>稳定性</span><div class="bar"><span style="width:${(m.stability||90)}%"></span></div><span class="n">${m.stability||90}/100</span></div>`;
     const benchRows = m.benchmarks.length
       ? m.benchmarks.map(b => `<tr><td>${esc(b.label)}</td><td class="num">${esc(b.value)}</td><td>${esc(b.src)}</td></tr>`).join("")
       : `<tr><td colspan="3" style="color:var(--fg-4);">本轮未收录公开 Benchmark 数据</td></tr>`;
@@ -1901,23 +1910,26 @@
     }).join("");
   }
 
-  /* ═══════════════ 成本条形图 ═══════════════ */
+  /* ═══════════════ 成本条形图 V13 对数化可视：√缩放使低价模型可读 ═══════════════ */
   function renderCost() {
     const priced = MODELS.filter(m => m.priceIn != null);
     const maxIn = Math.max(...priced.map(m => m.priceIn));
     const maxOut = Math.max(...priced.map(m => m.priceOut));
+    // √缩放：0.15/5=0.03→17%（线性仅3%不可见），保留价格文字精确值
+    const wIn = (v, max) => Math.round(Math.sqrt(v / max) * 100);
+    const wOut = (v, max) => Math.round(Math.sqrt(v / max) * 100);
     $("#costBars").innerHTML = priced.map(m => `
       <div class="cost-bar-row">
         <span class="m">${esc(m.name)}</span>
         <div class="cost-pair">
           <div style="display:flex; align-items:center; gap:10px;">
             <div class="cost-label" style="min-width:34px;">输入</div>
-            <div class="bar in" style="flex:1;"><span style="width:${Math.round(m.priceIn / maxIn * 100)}%"></span></div>
+            <div class="bar in" style="flex:1;"><span style="width:${wIn(m.priceIn, maxIn)}%"></span></div>
             <span class="v">$${m.priceIn}</span>
           </div>
           <div style="display:flex; align-items:center; gap:10px;">
             <div class="cost-label" style="min-width:34px;">输出</div>
-            <div class="bar out" style="flex:1;"><span style="width:${Math.round(m.priceOut / maxOut * 100)}%"></span></div>
+            <div class="bar out" style="flex:1;"><span style="width:${wOut(m.priceOut, maxOut)}%"></span></div>
             <span class="v">$${m.priceOut}</span>
           </div>
         </div>
