@@ -2,6 +2,7 @@
 <!--
   AI Coding Model Selector · AI 编程模型项目选型指南
   数据更新时间：2026-08-30
+  V14：16 模型官方数据补录（Fable 5 1M/128K $10/$50、Sonnet 5 1M/128K $2/$10、GLM-5.3 1M/128K $1.4/$4.4、Kimi K3 1M/128K $3/$15、Grok 4.5/4.6 500K/128K $2/$6、DeepSeek V4 base 价等，来源见详情）
   V13：16 模型推荐逻辑修正（动态偏好权重 / 规模去截断 / 中文+长时加成 / 多S治理 / 阈值修正）
   V12：16 模型（含新增 5 模型：GPT-5.6 Terra / Claude Fable 5 / Claude Sonnet 5 / Gemini 3.7 Flash / GLM-5.3）
 
@@ -13,6 +14,7 @@
     accent: indigo #5e6ad2 (per linear-app/DESIGN.md)
     craft: typography, color, anti-ai-slop, accessibility-baseline, form-validation,
            laws-of-ux, animation-discipline, state-coverage, typography-hierarchy
+    V14 (2026-08-30): 官方数据补录——补齐 Fable 5/Sonnet 5/GLM-5.3/Kimi K3/Grok 4.5 等 ctx/maxOutput/价格（来源：Anthropic 定价页、Z.ai docs、Google Gemini 3.7 Flash 官方文档、xAI docs、Moonshot Kimi 定价页、DeepSeek 官方定价页），DeepSeek 改为 base 价（Pro $0.435/$0.87、Flash $0.14/$0.28）并注明峰谷价，成本条改为 √缩放。
     V13 (2026-08-30): 推荐逻辑修正——关注重点动态权重（成本/速度/中文等 5%→12%，平台权重相应下调）、规模去截断（大/超大不再同分）、中文沟通加成 5%→8% 且与偏好叠加、长时 Agent 加成 6%→8%、平台规避阈值 90→85、语言缺省 70→75、细节：成本条对数化、热力图多S说明、稳定性维度展示。
     V12 (2026-08-29): 新增 5 个主流模型 GPT-5.6 Terra / Claude Fable 5 / Claude Sonnet 5 / Gemini 3.7 Flash / GLM-5.3，复用现有 8 维选型引擎
           （平台 20%·类型 20%·任务 20%·语言 15%·Agent 15%·规模 5%·关注 5%），补齐 platformFit / LANGUAGE_FIT / 任务映射；
@@ -790,7 +792,7 @@
             <h3 style="font-size: 16px; font-weight: 590; margin-bottom: 6px;">API 标准价格</h3>
             <p style="font-size: 12.5px; color: var(--fg-4); margin-bottom: 18px;">按 1M tokens 计价，仅收录官方已公布的定价；深色条为输入、浅色条为输出。</p>
             <div class="cost-bars" id="costBars"></div>
-            <p style="font-size: 12px; color: var(--fg-4); margin-top: 16px;">GPT-5.6 Terra $2/$12、Claude Sonnet 5 $2/$10、Gemini 3.7 Flash 介绍价 $0.75/$3.75（2026-12-31 后 $1.50/$7.50）；DeepSeek V4 峰谷定价峰值口径（Pro $1.32/$3.96、Flash $0.22/$0.66，非峰值减半）；Claude Opus 5 超 200K 提示词有 premium 档；GLM-5.3 Flash 为 Z.ai 限时 5 折价（2026-09-09 截止），以官方价格页实时数据为准。Fable 5 / GLM-5.3 价格未在本轮收录。</p>
+            <p style="font-size: 12px; color: var(--fg-4); margin-top: 16px;">Claude Fable 5 $10/$50、Sonnet 5 $2/$10、GLM-5.3 $1.40/$4.40（官方定价，来源见详情）；GPT-5.6 Terra $2/$12（短上下文，≥200K 时 $4/$18）、Gemini 3.7 Flash 介绍价 $0.75/$3.75（2026-12-31 后 $1.50/$7.50）；DeepSeek V4 base 价 Pro $0.435/$0.87、Flash $0.14/$0.28，峰谷价 off-peak $0.66/$1.98、$0.22/$0.66、peak $1.32/$3.96、$0.44/$1.32；Claude Opus 5 超 200K 提示词有 premium 档；GLM-5.3 Flash 限时 5 折价（2026-09-09 截止）。以官方价格页实时数据为准。</p>
           </div>
           <div class="panel">
             <h3 style="font-size: 16px; font-weight: 590; margin-bottom: 6px;">公开 Benchmark 摘录</h3>
@@ -888,11 +890,11 @@
       platformFit: { ios: 95, macos: 99, android: 94, web: 96, backend: 97, desktop: 99, crossplatform: 95, agent: 99, clisystem: 99, fullstack: 97 },
       stability: 93,
       caps: { reasoning: 5, agent: 5, repo: 4, context: 4, frontend: 4, iosMac: 5, systems: 5, chinese: 3, speed: 4, cost: 4 },
-      context: "500K", priceIn: 2.0, priceOut: 6.0,
+      context: "500K", maxOutput: "128K tokens", priceIn: 2.0, priceOut: 6.0,
       best: ["复杂 Debug", "长时间 Agent", "Mac App", "Rust / C / C++", "系统工具", "大型重构", "高难度工程"],
       avoid: ["简单 CRUD", "单纯批量代码生成", "成本极度敏感的任务"],
       benchmarks: [],
-      notes: "xAI 官方称其重点强化长时间运行 Agent、复杂 Coding、跨代码库工作；官方 API 为 500K context，支持多档 reasoning、Function Calling、Web Search、Code Execution。"
+      notes: "xAI 官方 docs.x.ai/developers/models/grok-4.6：500K Context / 128K Max Output，定价 $2/$6 每 1M tokens（<200K prompt），≥200K 时 $4/$12；支持 reasoning low/medium/high/xhigh、Function Calling、Web/X Search、Code Execution。"
     },
     {
       id: "grok45", name: "Grok 4.5", provider: "xAI", tier: "A",
@@ -901,11 +903,11 @@
       platformFit: { ios: 90, macos: 92, android: 90, web: 99, backend: 94, desktop: 92, crossplatform: 93, agent: 94, clisystem: 96, fullstack: 96 },
       stability: 86,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 4, frontend: 5, iosMac: 4, systems: 5, chinese: 3, speed: 5, cost: 4 },
-      context: "500K", maxOutput: "未公布", priceIn: 2, priceOut: 6,
+      context: "500K", maxOutput: "128K tokens", priceIn: 2, priceOut: 6,
       best: ["Web MVP", "React / Next.js", "Dashboard", "Landing Page", "Node.js", "CLI", "快速原型", "快速 Rust/C++ 开发"],
       avoid: ["超大型老仓库重构", "极复杂数据库架构", "极难生产 Bug"],
       benchmarks: [{ label: "Terminal-Bench 2.1", value: "81.6", src: "Meta 对比数据" }, { label: "DeepSWE 1.1", value: "56.6", src: "Meta 对比数据" }],
-      notes: "速度型工程师：从 0 到 1 快速产出、Web 生成强；在 Meta 对比数据中 Terminal-Bench 2.1 为 81.6%、DeepSWE 1.1 为 56.6%。不适合超大型老仓库重构与极难生产 Bug。"
+      notes: "xAI 官方 docs.x.ai/developers/models/grok-4.5：500K Context / 128K Max Output，$2/$6 每 1M tokens（<200K prompt），≥200K 时 $4/$12。速度型工程师：从 0 到 1 快速产出、Web 生成强；在 Meta 对比数据中 Terminal-Bench 2.1 为 81.6%、DeepSWE 1.1 为 56.6%。"
     },
     {
       id: "muse12", name: "Muse Spark 1.2", provider: "Meta", tier: "A",
@@ -914,7 +916,7 @@
       platformFit: { ios: 94, macos: 95, android: 93, web: 95, backend: 98, desktop: 96, crossplatform: 96, agent: 99, clisystem: 97, fullstack: 98 },
       stability: 91,
       caps: { reasoning: 4, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 3, speed: 4, cost: 5 },
-      context: "约 1.05M", priceIn: 1.25, priceOut: 4.25,
+      context: "约 1.05M", maxOutput: "128K tokens", priceIn: 1.25, priceOut: 4.25,
       best: ["大型 Repo", "长上下文项目", "跨目录修改", "大批量重构", "Agent 长任务", "代码库迁移"],
       avoid: ["很简单的单文件任务", "对 UI 美感要求极高的小型前端项目"],
       benchmarks: [{ label: "Terminal-Bench 2.1", value: "82.9", src: "Meta 对比数据" }, { label: "DeepSWE 1.1", value: "59.3", src: "Meta 对比数据" }, { label: "Meta 440 题 Coding Bench", value: "70.6", src: "Meta 内部" }],
@@ -928,11 +930,11 @@
       platformFit: { ios: 90, macos: 90, android: 90, web: 94, backend: 96, desktop: 90, crossplatform: 92, agent: 96, clisystem: 94, fullstack: 96 },
       stability: 92,
       caps: { reasoning: 4, agent: 4, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 4, cost: 5 },
-      context: "1M tokens", maxOutput: "384K tokens", priceIn: 1.32, priceOut: 3.96,
+      context: "1M tokens", maxOutput: "384K tokens", priceIn: 0.435, priceOut: 0.87,
       best: ["复杂工程", "Debug", "重构", "架构设计", "大型 Repo", "复杂 Agent", "后端系统", "代码审查", "性能优化"],
       avoid: ["极难根因分析（建议切 Opus/GPT-5.6/Grok 4.6）", "Apple 原生开发不作第一选择"],
       benchmarks: [],
-      notes: "DeepSeek-V4-Pro-0813（GA，2026-08-13 发布）：旗舰级 Coding / Agent 高性价比模型，擅长复杂 Coding、Agent、Debug、重构、架构设计与大型 Repo；1M Context / 384K 输出，Tool Calling 与 Codex 工作流支持。来源：DeepSeek 官方 API 文档与 GA 公告；API 定价分峰谷：峰值 $1.32/$3.96、非峰值 $0.66/$1.98（每 1M tokens）。"
+      notes: "DeepSeek-V4-Pro-0813（GA，2026-08-13 发布）：旗舰级 Coding / Agent 高性价比模型，擅长复杂 Coding、Agent、Debug、重构、架构设计与大型 Repo；1M Context / 384K 输出，Tool Calling 与 Codex 工作流支持。来源：DeepSeek 官方 API 文档 api-docs.deepseek.com/quick_start/pricing 与 GA 公告；API 定价 base $0.435/$0.87 每 1M tokens（Cache Miss Input/Output），峰谷价 off-peak $0.66/$1.98、peak $1.32/$3.96（来源 2026-08-16 公告）。图示采用 base 价。"
     },
     {
       id: "dsv4flash", name: "DeepSeek V4 Flash", provider: "DeepSeek", tier: "A",
@@ -942,7 +944,7 @@
       platformFit: { ios: 86, macos: 86, android: 86, web: 95, backend: 95, desktop: 86, crossplatform: 92, agent: 96, clisystem: 95, fullstack: 96 },
       stability: 90,
       caps: { reasoning: 4, agent: 5, repo: 4, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 4, speed: 5, cost: 5 },
-      context: "1M tokens", maxOutput: "384K tokens", priceIn: 0.22, priceOut: 0.66,
+      context: "1M tokens", maxOutput: "384K tokens", priceIn: 0.14, priceOut: 0.28,
       best: ["批量 Coding", "高频 Agent", "Terminal / 自动化", "Web / 后端", "Python / TypeScript / Node", "数据处理", "爬虫", "测试生成", "Codex 工作流", "成本敏感大规模调用"],
       avoid: ["复杂架构 / 大型重构（优先 Opus/GPT-5.6/Grok 4.6/Muse/V4 Pro）", "极难根因分析", "Apple 原生开发不作第一选择"],
       benchmarks: [
@@ -956,7 +958,7 @@
         { label: "DSBench FullStack", value: "68.7", src: "DeepSeek 官方 · V4-Flash-0731" },
         { label: "DSBench Hard", value: "59.6", src: "DeepSeek 官方 · V4-Flash-0731" }
       ],
-      notes: "DeepSeek-V4-Flash-0731（正式版 API / Public Beta，2026-07-31 发布）：高性能、高吞吐的 Coding / Agent 主力，不是能力较弱的 Flash。1M Context / 384K 输出，Tool Calling、Responses API 与 Codex 工作流支持；适合批量开发、Terminal、自动化与高频任务。来源：DeepSeek 官方发布公告与 API 文档；API 定价分峰谷：非峰值 $0.22/$0.66、峰值翻倍（每 1M tokens）。"
+      notes: "DeepSeek-V4-Flash-0731（正式版 API / Public Beta，2026-07-31 发布）：高性能、高吞吐的 Coding / Agent 主力，不是能力较弱的 Flash。1M Context / 384K 输出，Tool Calling、Responses API 与 Codex 工作流支持；适合批量开发、Terminal、自动化与高频任务。来源：DeepSeek 官方发布公告与 API 文档 api-docs.deepseek.com/quick_start/pricing；API 定价 base $0.14/$0.28 每 1M tokens，峰谷价 off-peak $0.22/$0.66、peak $0.44/$1.32。图示采用 base 价。"
     },
     {
       id: "kimi3", name: "Kimi K3", provider: "Moonshot AI", tier: "A",
@@ -965,7 +967,7 @@
       platformFit: { ios: 88, macos: 88, android: 88, web: 93, backend: 94, desktop: 88, crossplatform: 92, agent: 95, clisystem: 90, fullstack: 94 },
       stability: 90,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 4, chinese: 5, speed: 4, cost: 4 },
-      context: "1M tokens", maxOutput: "未公布", priceIn: 3, priceOut: 15,
+      context: "1M tokens", maxOutput: "128K tokens", priceIn: 3, priceOut: 15,
       best: ["中文项目", "长上下文项目", "大型 Agent", "大型中文业务系统", "中文需求分析"],
       avoid: ["纯追求最快 Web MVP", "极简单脚本"],
       benchmarks: [
@@ -974,7 +976,7 @@
         { label: "FrontierSWE", value: "81.2", src: "Kimi 官方" },
         { label: "SWE-Marathon", value: "42.0", src: "Kimi 官方" }
       ],
-      notes: "中文大型项目、长任务、长上下文与 Agent Coding 的组合定位；需要中文业务语义理解的项目优先。"
+      notes: "Moonshot Kimi K3（2026-07-16）：1M Context（1,048,576 tokens）/ 128K Max Output，官方定价 $3 / $15 每 1M tokens（Cache Hit $0.30），来源 platform.kimi.ai 与 benchlm.ai。中文大型项目、长任务、长上下文与 Agent Coding 的组合定位；需要中文业务语义理解的项目优先。"
     },
     {
       id: "glm52", name: "GLM-5.2", provider: "智谱 AI", tier: "A",
@@ -1030,27 +1032,27 @@
     },
     {
       id: "fable5", name: "Claude Fable 5", provider: "Anthropic", tier: "S",
-      version: "Claude-Fable-5", status: "ga", statusLabel: "GA",
+      version: "Claude-Fable-5", status: "ga", statusLabel: "GA", releaseDate: "2026-06-09",
       positioning: "顶级复杂工程 / 长程 Agent / 高难度 Coding——极限复杂工程旗舰",
       tags: ["极限复杂工程", "长程 Agent", "大型 Repo", "深度 Debug"],
       platformFit: { ios: 94, macos: 96, android: 93, web: 96, backend: 98, desktop: 96, crossplatform: 96, agent: 100, clisystem: 98, fullstack: 97 },
       stability: 96,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 5, iosMac: 5, systems: 5, chinese: 4, speed: 4, cost: 3 },
-      context: "未公布", maxOutput: "未公布", priceIn: null, priceOut: null,
+      context: "1M tokens", maxOutput: "128K tokens", priceIn: 10, priceOut: 50,
       best: ["超大型 Repo", "复杂 Agent", "大型重构", "复杂 Debug", "架构设计", "长时间自主开发", "高难度工程"],
       avoid: ["简单 CRUD", "大规模低成本批量任务", "极度成本敏感项目"],
       benchmarks: [],
-      notes: "Anthropic Claude 5 / Fable 旗舰档，定位极限复杂工程 / 长程 Agent。核心能力：复杂 Coding、大型 Repo、长期 Agent、深度 Debug、架构设计、复杂重构、多步骤工具调用、视觉理解。场景适配度：Coding 99 / Debug 99 / Refactor 99 / Architecture 98 / Agent 100 / Terminal 98 / Large Repo 100 / Frontend 95。"
+      notes: "Anthropic Claude Fable 5（GA 2026-06-09）：1M Context / 128K Max Output，官方定价 $10 / $50 每 1M tokens（Prompt Caching 90% off，Batch 50% off）。来源：Anthropic 官方定价页 platform.claude.com/docs/en/about-claude/pricing 与 Fable 5 发布页 anthropic.com/claude/fable。场景适配度：Coding 99 / Debug 99 / Refactor 99 / Architecture 98 / Agent 100 / Terminal 98 / Large Repo 100 / Frontend 95。"
     },
     {
       id: "sonnet5", name: "Claude Sonnet 5", provider: "Anthropic", tier: "A",
-      version: "Claude-Sonnet-5", status: "ga", statusLabel: "GA",
+      version: "Claude-Sonnet-5", status: "ga", statusLabel: "GA", releaseDate: "2026-06-30",
       positioning: "高质量 + 高速度 + 成本平衡型 Agent Coding 主力",
       tags: ["高质量主力", "高速度", "成本平衡", "Agent Coding"],
       platformFit: { ios: 93, macos: 95, android: 92, web: 97, backend: 96, desktop: 94, crossplatform: 96, agent: 99, clisystem: 97, fullstack: 97 },
       stability: 93,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 5, iosMac: 5, systems: 4, chinese: 5, speed: 5, cost: 5 },
-      context: "未公布", maxOutput: "未公布", priceIn: 2, priceOut: 10,
+      context: "1M tokens", maxOutput: "128K tokens", priceIn: 2, priceOut: 10,
       best: ["Web", "全栈", "SaaS", "Agent", "企业软件", "Claude Code", "大型 Repo", "Browser 自动化", "Code Review", "重构"],
       avoid: ["超大型纯代码 Repo 长期重构（优先 Fable）", "极复杂系统底层"] ,
       benchmarks: [],
@@ -1072,17 +1074,17 @@
     },
     {
       id: "glm53full", name: "GLM-5.3", provider: "Z.ai", tier: "S",
-      version: "GLM-5.3", status: "ga", statusLabel: "GA · 旗舰", releaseDate: "2026-08-26",
+      version: "GLM-5.3", status: "ga", statusLabel: "GA · 旗舰", releaseDate: "2026-08-14",
       positioning: "开放权重旗舰 Coding / 长程 Agent——中文 + 开放权重 + 长程 Coding 旗舰",
       tags: ["开放权重", "中文", "长程 Agent", "旗舰"],
       platformFit: { ios: 82, macos: 84, android: 88, web: 94, backend: 97, desktop: 89, crossplatform: 93, agent: 99, clisystem: 98, fullstack: 94 },
       stability: 93,
       caps: { reasoning: 5, agent: 5, repo: 5, context: 5, frontend: 4, iosMac: 4, systems: 5, chinese: 5, speed: 4, cost: 5 },
-      context: "未公布", maxOutput: "未公布", priceIn: null, priceOut: null,
+      context: "1M tokens", maxOutput: "128K tokens", priceIn: 1.4, priceOut: 4.4,
       best: ["大型 Repo", "Agent", "Terminal", "企业软件", "后端", "中文 Coding", "复杂工程", "长时间自主任务", "开放权重 / 私有化"],
       avoid: ["极致前端视觉设计", "纯截图 → UI", "极低延迟简单任务"],
       benchmarks: [],
-      notes: "Z.ai GLM-5.3 开放权重旗舰，相比 GLM-5.2 在 Z.ai Code Bench 提升约 50%。核心能力：复杂 Coding / Long Horizon Agent / 大型 Repo / Refactor / Terminal / Tool Calling / 中文 Coding / 长上下文。场景适配度：Coding 95 / Debug 94 / Refactor 94 / Agent 98 / Terminal 97 / Large Repo 97 / 中文 98 / 性价比 95。SaaS 95 / ETL 96 / 爬虫 96 / 企业软件 98。"
+      notes: "Z.ai GLM-5.3（GA 2026-08-14）：1M Context / 128K Max Output，官方定价 $1.40 / $4.40 每 1M tokens（Cached Input $0.26，来源 docs.z.ai/guides/llm/glm-5.3 与 z.ai/blog/glm-5.3）。相比 GLM-5.2 在 Z.ai Code Bench 提升约 50%。来源：TechCompare/WaveSpeed 摘录官方定价页，定价与 GLM-5.2 持平。场景适配度：Coding 95 / Debug 94 / Refactor 94 / Agent 98 / Terminal 97 / Large Repo 97 / 中文 98 / 性价比 95。"
     }
   ];
 
